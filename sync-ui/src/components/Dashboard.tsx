@@ -104,17 +104,17 @@ export function Dashboard() {
               onChange={(e) => setRegion(e.target.value)}
               disabled={isLoading}
             >
-              <option value="na1">North America</option>
-              <option value="euw1">Europe West</option>
-              <option value="eun1">Europe Nordic & East</option>
-              <option value="kr">Korea</option>
-              <option value="jp1">Japan</option>
-              <option value="br1">Brazil</option>
-              <option value="la1">Latin America North</option>
-              <option value="la2">Latin America South</option>
-              <option value="oc1">Oceania</option>
-              <option value="tr1">Turkey</option>
-              <option value="ru">Russia</option>
+              <option value="americas">North America</option>
+              <option value="europe">Europe West</option>
+              <option value="europe">Europe Nordic & East</option>
+              <option value="asia">Korea</option>
+              <option value="asia">Japan</option>
+              <option value="americas">Brazil</option>
+              <option value="americas">Latin America North</option>
+              <option value="americas">Latin America South</option>
+              <option value="asia">Oceania</option>
+              <option value="asia">Turkey</option>
+              <option value="asia">Russia</option>
             </Select>
           </div>
           

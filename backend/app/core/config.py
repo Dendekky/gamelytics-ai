@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     
     # Riot API Configuration
     RIOT_API_KEY: Optional[str] = None
-    RIOT_API_BASE_URL: str = "https://americas.api.riotgames.com"
+    RIOT_API_BASE_URL: str = "https://europe.api.riotgames.com"
     
     # CORS Configuration
     BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:1420"]
@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "allow"  # This allows reading any extra .env variables
 
 
 settings = Settings() 
