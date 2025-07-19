@@ -12,7 +12,6 @@ class Settings(BaseSettings):
     
     # Riot API Configuration
     RIOT_API_KEY: Optional[str] = None
-    RIOT_API_BASE_URL: str = "https://europe.api.riotgames.com"
     
     # CORS Configuration
     BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:1420"]

@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 
-interface SummonerData {
-  name: string
+interface SummonerRiotIdData {
+  game_name: string
+  tag_line: string
   region: string
 }
 
@@ -13,35 +14,75 @@ interface SummonerResponse {
   puuid: string
   summoner_id: string
   account_id: string
-  name: string
+  name?: string // Optional, may be null due to deprecation
+  game_name?: string
+  tag_line?: string
   level: number
   region: string
 }
 
 export function Dashboard() {
-  const [summonerName, setSummonerName] = useState("")
+  const [riotId, setRiotId] = useState("") // For single input like "GameName#1234"
+  const [gameName, setGameName] = useState("") // For separate inputs
+  const [tagLine, setTagLine] = useState("")
   const [region, setRegion] = useState("na1")
+  const [inputMode, setInputMode] = useState<"single" | "separate">("single")
   const [isLoading, setIsLoading] = useState(false)
   const [summonerData, setSummonerData] = useState<SummonerResponse | null>(null)
   const [error, setError] = useState("")
 
+  const parseRiotId = (input: string): { gameName: string; tagLine: string } | null => {
+    // Parse "GameName#1234" format
+    const match = input.match(/^(.+)#(.+)$/)
+    if (match && match[1] && match[2]) {
+      return {
+        gameName: match[1].trim(),
+        tagLine: match[2].trim()
+      }
+    }
+    return null
+  }
+
   const handleConnectAccount = async () => {
-    if (!summonerName.trim()) {
-      setError("Please enter a summoner name")
-      return
+    let finalGameName = ""
+    let finalTagLine = ""
+
+    if (inputMode === "single") {
+      if (!riotId.trim()) {
+        setError("Please enter a Riot ID (GameName#1234)")
+        return
+      }
+
+      const parsed = parseRiotId(riotId.trim())
+      if (!parsed) {
+        setError("Invalid Riot ID format. Please use: GameName#1234")
+        return
+      }
+
+      finalGameName = parsed.gameName
+      finalTagLine = parsed.tagLine
+    } else {
+      if (!gameName.trim() || !tagLine.trim()) {
+        setError("Please enter both game name and tag line")
+        return
+      }
+
+      finalGameName = gameName.trim()
+      finalTagLine = tagLine.trim()
     }
 
     setIsLoading(true)
     setError("")
 
     try {
-      const response = await fetch("http://localhost:8000/api/v1/summoners/lookup", {
+      const response = await fetch("http://localhost:8000/api/v1/summoners/lookup-by-riot-id", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: summonerName.trim(),
+          game_name: finalGameName,
+          tag_line: finalTagLine,
           region: region,
         }),
       })
@@ -77,23 +118,84 @@ export function Dashboard() {
         <CardHeader>
           <CardTitle>🔍 Connect Your Account</CardTitle>
           <CardDescription>
-            Enter your summoner name to get started with performance analysis
+            Enter your Riot ID to get started with performance analysis
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="summoner-name" className="text-sm font-medium">
-              Summoner Name
-            </label>
-            <Input 
-              id="summoner-name"
-              placeholder="Enter your summoner name..."
-              className="w-full"
-              value={summonerName}
-              onChange={(e) => setSummonerName(e.target.value)}
+          {/* Input Mode Toggle */}
+          <div className="flex space-x-2">
+            <Button
+              variant={inputMode === "single" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setInputMode("single")}
               disabled={isLoading}
-            />
+            >
+              Riot ID
+            </Button>
+            <Button
+              variant={inputMode === "separate" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setInputMode("separate")}
+              disabled={isLoading}
+            >
+              Separate Fields
+            </Button>
           </div>
+
+          {inputMode === "single" ? (
+            <div className="space-y-2">
+              <label htmlFor="riot-id" className="text-sm font-medium">
+                Riot ID
+              </label>
+              <Input 
+                id="riot-id"
+                placeholder="GameName#1234"
+                className="w-full"
+                value={riotId}
+                onChange={(e) => setRiotId(e.target.value)}
+                disabled={isLoading}
+              />
+              <p className="text-xs text-muted-foreground">
+                Format: GameName#TagLine (e.g., "PlayerName#1234")
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <label htmlFor="game-name" className="text-sm font-medium">
+                  Game Name
+                </label>
+                <Input 
+                  id="game-name"
+                  placeholder="PlayerName"
+                  className="w-full"
+                  value={gameName}
+                  onChange={(e) => setGameName(e.target.value)}
+                  disabled={isLoading}
+                />
+                <p className="text-xs text-muted-foreground">
+                  The part before # in your Riot ID
+                </p>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="tag-line" className="text-sm font-medium">
+                  Tag Line
+                </label>
+                <Input 
+                  id="tag-line"
+                  placeholder="1234"
+                  className="w-full"
+                  value={tagLine}
+                  onChange={(e) => setTagLine(e.target.value)}
+                  disabled={isLoading}
+                />
+                <p className="text-xs text-muted-foreground">
+                  The part after # in your Riot ID
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2">
             <label htmlFor="region" className="text-sm font-medium">
               Region
@@ -104,17 +206,17 @@ export function Dashboard() {
               onChange={(e) => setRegion(e.target.value)}
               disabled={isLoading}
             >
-              <option value="americas">North America</option>
-              <option value="europe">Europe West</option>
-              <option value="europe">Europe Nordic & East</option>
-              <option value="asia">Korea</option>
-              <option value="asia">Japan</option>
-              <option value="americas">Brazil</option>
-              <option value="americas">Latin America North</option>
-              <option value="americas">Latin America South</option>
-              <option value="asia">Oceania</option>
-              <option value="asia">Turkey</option>
-              <option value="asia">Russia</option>
+              <option value="na1">North America</option>
+              <option value="euw1">Europe West</option>
+              <option value="eun1">Europe Nordic & East</option>
+              <option value="kr">Korea</option>
+              <option value="jp1">Japan</option>
+              <option value="br1">Brazil</option>
+              <option value="la1">Latin America North</option>
+              <option value="la2">Latin America South</option>
+              <option value="oc1">Oceania</option>
+              <option value="tr1">Turkey</option>
+              <option value="ru">Russia</option>
             </Select>
           </div>
           
@@ -126,7 +228,9 @@ export function Dashboard() {
           
           {summonerData && (
             <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md">
-              ✅ Connected to {summonerData.name} (Level {summonerData.level})
+              ✅ Connected to {summonerData.game_name || summonerData.name || "Unknown"}
+              {summonerData.tag_line && `#${summonerData.tag_line}`}
+              {summonerData.level && ` (Level ${summonerData.level})`}
             </div>
           )}
           
@@ -137,6 +241,17 @@ export function Dashboard() {
           >
             {isLoading ? "Connecting..." : "Connect Account"}
           </Button>
+
+          {/* Help Section */}
+          <div className="mt-4 p-3 bg-blue-50 rounded-md">
+            <h4 className="text-sm font-medium text-blue-900 mb-2">💡 How to find your Riot ID:</h4>
+            <ul className="text-xs text-blue-800 space-y-1">
+              <li>• In League client: hover over your name</li>
+              <li>• In game: look at the scoreboard</li>
+              <li>• Format is always: GameName#TagLine</li>
+              <li>• Example: "Hide on bush#KR1"</li>
+            </ul>
+          </div>
         </CardContent>
       </Card>
 
