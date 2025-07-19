@@ -41,24 +41,24 @@
 ### 🚧 Next Phase Priorities
 
 #### Phase 1 Remaining Tasks
-- [ ] **Python FastAPI Backend Setup**
-  - Backend project structure creation
-  - SQLAlchemy models setup
-  - Basic API endpoints scaffolding
-  - Database configuration (SQLite development)
+- [x] **Python FastAPI Backend Setup**
+  - ✅ Backend project structure creation
+  - ✅ Basic API endpoints scaffolding
+  - ✅ Database configuration (SQLite development)
+  - 🚧 SQLAlchemy models setup (next step)
 
 #### Phase 2 Immediate Goals
-- [ ] **Riot API Integration**
-  - API key management and secure storage
-  - Summoner lookup functionality
-  - Basic match data fetching
-  - Rate limiting implementation
+- [x] **Riot API Integration (Mock)**
+  - ✅ API key management and secure storage
+  - ✅ Summoner lookup functionality (mock data)
+  - 🚧 Basic match data fetching
+  - 🚧 Rate limiting implementation
 
-- [ ] **Frontend-Backend Connection**
-  - HTTP client setup in frontend
-  - "Connect Account" button functionality
-  - Loading states and error handling
-  - Data validation with Zod schemas
+- [x] **Frontend-Backend Connection**
+  - ✅ HTTP client setup in frontend
+  - ✅ "Connect Account" button functionality
+  - ✅ Loading states and error handling
+  - ✅ Data validation with Pydantic schemas
 
 #### Phase 3 Feature Development
 - [ ] **Core Analytics Engine**
@@ -99,7 +99,7 @@ gg-sync/
 │   ├── tailwind.config.js     # ✅ Tailwind CSS setup
 │   ├── postcss.config.js      # ✅ PostCSS configuration
 │   └── vite.config.ts         # ✅ Vite with path aliases
-├── backend/                   # ❌ Not created yet
+├── backend/                   # ✅ FastAPI backend with working API
 ├── architecture.md            # ✅ Comprehensive architecture docs
 ├── tech-stack.md             # ✅ Technology decisions documented
 └── progress.md               # ✅ This file (updated)

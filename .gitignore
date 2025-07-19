@@ -1,0 +1,168 @@
+# ===== BACKEND (Python/FastAPI) =====
+
+# Virtual Environments
+backend/venv/
+backend/env/
+backend/.venv/
+backend/ENV/
+backend/env.bak/
+backend/venv.bak/
+
+# Python cache in backend
+backend/__pycache__/
+backend/**/__pycache__/
+backend/**/*.py[cod]
+backend/**/*$py.class
+
+# Environment Variables
+backend/.env
+backend/.env.local
+backend/.env.development
+backend/.env.test
+backend/.env.production
+backend/.env.staging
+
+# Database Files
+backend/*.db
+backend/*.sqlite
+backend/*.sqlite3
+backend/gg_sync.db
+
+# Testing in backend
+backend/.coverage
+backend/.pytest_cache/
+backend/htmlcov/
+backend/*.cover
+
+# Backend IDE files
+backend/.vscode/
+backend/.idea/
+
+# Backend logs
+backend/*.log
+
+# ===== FRONTEND (React/Tauri) =====
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Production builds
+dist/
+dist-ssr/
+build/
+
+# Local env files
+*.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Tauri
+sync-ui/src-tauri/target/
+
+# ===== EDITORS & IDEs =====
+
+# VSCode
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# IntelliJ
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+\#*\#
+.\#*
+
+# ===== OPERATING SYSTEMS =====
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.tmp
+*.temp
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+
+# ===== SECURITY & SECRETS =====
+
+# API Keys and secrets
+.env.secret
+secrets.json
+*.pem
+*.key
+*.crt
+*.p12
+
+# ===== TEMPORARY & CACHE FILES =====
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# ===== PROJECT SPECIFIC =====
+
+# Documentation builds
+docs/_build/
+
+# Database backups
+*.sql
+*.dump
+
+# Generated files
+*.generated.* 

@@ -1,9 +1,67 @@
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 
+interface SummonerData {
+  name: string
+  region: string
+}
+
+interface SummonerResponse {
+  puuid: string
+  summoner_id: string
+  account_id: string
+  name: string
+  level: number
+  region: string
+}
+
 export function Dashboard() {
+  const [summonerName, setSummonerName] = useState("")
+  const [region, setRegion] = useState("na1")
+  const [isLoading, setIsLoading] = useState(false)
+  const [summonerData, setSummonerData] = useState<SummonerResponse | null>(null)
+  const [error, setError] = useState("")
+
+  const handleConnectAccount = async () => {
+    if (!summonerName.trim()) {
+      setError("Please enter a summoner name")
+      return
+    }
+
+    setIsLoading(true)
+    setError("")
+
+    try {
+      const response = await fetch("http://localhost:8000/api/v1/summoners/lookup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: summonerName.trim(),
+          region: region,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.detail || "Failed to connect account")
+      }
+
+      const data: SummonerResponse = await response.json()
+      setSummonerData(data)
+      setError("")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to connect account")
+      setSummonerData(null)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
@@ -31,13 +89,21 @@ export function Dashboard() {
               id="summoner-name"
               placeholder="Enter your summoner name..."
               className="w-full"
+              value={summonerName}
+              onChange={(e) => setSummonerName(e.target.value)}
+              disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
             <label htmlFor="region" className="text-sm font-medium">
               Region
             </label>
-            <Select id="region">
+            <Select 
+              id="region"
+              value={region}
+              onChange={(e) => setRegion(e.target.value)}
+              disabled={isLoading}
+            >
               <option value="na1">North America</option>
               <option value="euw1">Europe West</option>
               <option value="eun1">Europe Nordic & East</option>
@@ -51,8 +117,25 @@ export function Dashboard() {
               <option value="ru">Russia</option>
             </Select>
           </div>
-          <Button className="w-full">
-            Connect Account
+          
+          {error && (
+            <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
+              {error}
+            </div>
+          )}
+          
+          {summonerData && (
+            <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md">
+              ✅ Connected to {summonerData.name} (Level {summonerData.level})
+            </div>
+          )}
+          
+          <Button 
+            className="w-full" 
+            onClick={handleConnectAccount}
+            disabled={isLoading}
+          >
+            {isLoading ? "Connecting..." : "Connect Account"}
           </Button>
         </CardContent>
       </Card>
