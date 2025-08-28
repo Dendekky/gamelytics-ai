@@ -18,6 +18,30 @@ class MatchService:
         return result.scalar_one_or_none()
     
     @staticmethod
+    async def get_match_with_participants(db: AsyncSession, match_id: str) -> Optional[Match]:
+        """Get match by match ID with participants eagerly loaded"""
+        try:
+            from sqlalchemy.orm import selectinload
+            result = await db.execute(
+                select(Match)
+                .options(selectinload(Match.participants))
+                .where(Match.match_id == match_id)
+            )
+            return result.scalar_one_or_none()
+        except Exception as e:
+            print(f"❌ Error with eager loading participants: {str(e)}")
+            # Fallback: get match without participants
+            return await MatchService.get_match_by_id(db, match_id)
+    
+    @staticmethod
+    async def get_participants_by_match_id(db: AsyncSession, match_id: str) -> List[MatchParticipant]:
+        """Get all participants for a specific match"""
+        result = await db.execute(
+            select(MatchParticipant).where(MatchParticipant.match_id == match_id)
+        )
+        return result.scalars().all()
+    
+    @staticmethod
     async def get_matches_by_puuid(
         db: AsyncSession, 
         puuid: str, 

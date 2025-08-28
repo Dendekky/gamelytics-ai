@@ -5,9 +5,10 @@ import { type PlayerMatchPerformance, QUEUE_TYPES, MAP_NAMES } from "@/types/mat
 
 interface MatchCardProps {
   match: PlayerMatchPerformance
+  onClick?: () => void
 }
 
-export function MatchCard({ match }: MatchCardProps) {
+export function MatchCard({ match, onClick }: MatchCardProps) {
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString)
     const now = new Date()
@@ -51,7 +52,10 @@ export function MatchCard({ match }: MatchCardProps) {
   }
 
   return (
-    <Card className={`transition-all hover:shadow-md ${match.win ? 'border-l-4 border-l-green-500 bg-green-50/30' : 'border-l-4 border-l-red-500 bg-red-50/30'}`}>
+    <Card 
+      className={`group transition-all hover:shadow-md ${match.win ? 'border-l-4 border-l-green-500 bg-green-50/30' : 'border-l-4 border-l-red-500 bg-red-50/30'} ${onClick ? 'cursor-pointer hover:bg-muted/50' : ''}`}
+      onClick={onClick}
+    >
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           {/* Left side - Champion and Result */}
@@ -119,6 +123,11 @@ export function MatchCard({ match }: MatchCardProps) {
             <div className="text-xs text-muted-foreground mt-1">
               {(match.gold_earned / 1000).toFixed(1)}k gold
             </div>
+            {onClick && (
+              <div className="text-xs text-blue-600 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                Click for details →
+              </div>
+            )}
           </div>
         </div>
       </CardContent>

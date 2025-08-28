@@ -129,9 +129,13 @@ async def get_match_detail(
     Get detailed information about a specific match
     """
     try:
-        match = await MatchService.get_match_by_id(db, match_id)
+        print(f"🔍 Fetching match details for match_id: {match_id}")
+        match = await MatchService.get_match_with_participants(db, match_id)
         if not match:
+            print(f"❌ Match not found in database: {match_id}")
             raise HTTPException(status_code=404, detail="Match not found")
+        
+        print(f"✅ Found match: {match.match_id}, participants loaded: {len(list(match.participants)) if match.participants else 0}")
         
         # Create base response
         match_response = MatchResponse(
@@ -149,30 +153,112 @@ async def get_match_detail(
         # Add participants if requested
         if include_participants:
             participants = []
-            for participant in match.participants:
-                participant_response = MatchParticipantResponse(
-                    puuid=participant.puuid,
-                    participant_id=participant.participant_id,
-                    team_id=participant.team_id,
-                    champion_id=participant.champion_id,
-                    champion_name=participant.champion_name,
-                    champion_level=participant.champion_level,
-                    kills=participant.kills,
-                    deaths=participant.deaths,
-                    assists=participant.assists,
-                    kda_ratio=participant.kda_ratio,
-                    total_damage_dealt_to_champions=participant.total_damage_dealt_to_champions,
-                    gold_earned=participant.gold_earned,
-                    total_minions_killed=participant.total_minions_killed,
-                    vision_score=participant.vision_score,
-                    win=participant.win,
-                    items=participant.items
-                )
-                participants.append(participant_response)
-            
-            match_response.participants = participants
+            try:
+                # Try to use the relationship first
+                participant_list = list(match.participants) if match.participants else []
+                if not participant_list:
+                    # Fallback: query participants separately
+                    print("🔄 Relationship empty, fetching participants separately...")
+                    participant_list = await MatchService.get_participants_by_match_id(db, match_id)
+                
+                for participant in participant_list:
+                    participant_response = MatchParticipantResponse(
+                        puuid=participant.puuid,
+                        participant_id=participant.participant_id,
+                        team_id=participant.team_id,
+                        champion_id=participant.champion_id,
+                        champion_name=participant.champion_name,
+                        champion_level=participant.champion_level,
+                        kills=participant.kills,
+                        deaths=participant.deaths,
+                        assists=participant.assists,
+                        kda_ratio=participant.kda_ratio,
+                        total_damage_dealt_to_champions=participant.total_damage_dealt_to_champions,
+                        gold_earned=participant.gold_earned,
+                        total_minions_killed=participant.total_minions_killed,
+                        vision_score=participant.vision_score,
+                        win=participant.win,
+                        items=participant.items
+                    )
+                    participants.append(participant_response)
+                
+                print(f"✅ Successfully processed {len(participants)} participants")
+                match_response.participants = participants
+                
+            except Exception as participant_error:
+                print(f"❌ Error processing participants: {str(participant_error)}")
+                # If participants fail, still return the match without participants
+                print("⚠️ Returning match without participants due to error")
         
         return match_response
         
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 404)
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving match details: {str(e)}") 
+        print(f"❌ Unexpected error in get_match_detail: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error retrieving match details: {str(e)}")
+
+
+@router.get("/debug/list-matches", response_model=List[str])
+async def list_all_matches(
+    db: AsyncSession = Depends(get_db),
+    limit: int = Query(10, ge=1, le=100, description="Number of matches to list")
+):
+    """
+    Debug endpoint to list all match IDs in the database
+    """
+    try:
+        from sqlalchemy import select
+        from app.models.match import Match
+        
+        result = await db.execute(
+            select(Match.match_id)
+            .order_by(Match.game_creation.desc())
+            .limit(limit)
+        )
+        match_ids = result.scalars().all()
+        print(f"🔍 Found {len(match_ids)} matches in database: {match_ids}")
+        return match_ids
+        
+    except Exception as e:
+        print(f"❌ Error listing matches: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error listing matches: {str(e)}")
+
+
+@router.get("/debug/match-participants/{match_id}")
+async def debug_match_participants(
+    match_id: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Debug endpoint to check participants for a specific match
+    """
+    try:
+        # Check if match exists
+        match = await MatchService.get_match_by_id(db, match_id)
+        if not match:
+            return {"error": "Match not found", "match_id": match_id}
+        
+        # Get participants separately
+        participants = await MatchService.get_participants_by_match_id(db, match_id)
+        
+        return {
+            "match_id": match_id,
+            "match_exists": True,
+            "participants_count": len(participants),
+            "participants": [
+                {
+                    "puuid": p.puuid,
+                    "champion_name": p.champion_name,
+                    "team_id": p.team_id,
+                    "participant_id": p.participant_id
+                } for p in participants
+            ]
+        }
+        
+    except Exception as e:
+        print(f"❌ Error debugging match participants: {str(e)}")
+        return {"error": str(e), "match_id": match_id} 

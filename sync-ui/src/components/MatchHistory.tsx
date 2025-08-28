@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { MatchCard } from "./MatchCard"
+import { DetailedMatchView } from "./DetailedMatchView"
 import { type PlayerMatchPerformance } from "@/types/match"
 
 interface MatchHistoryProps {
@@ -15,6 +16,7 @@ interface MatchHistoryProps {
 export function MatchHistory({ puuid, summonerName }: MatchHistoryProps) {
   const [limit, setLimit] = useState(20)
   const [fetchingNew, setFetchingNew] = useState(false)
+  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null)
 
   // Fetch match performance data
   const { data: matchPerformance, isLoading, error, refetch } = useQuery({
@@ -163,6 +165,16 @@ export function MatchHistory({ puuid, summonerName }: MatchHistoryProps) {
     )
   }
 
+  // If a match is selected, show detailed view
+  if (selectedMatchId) {
+    return (
+      <DetailedMatchView 
+        matchId={selectedMatchId} 
+        onBack={() => setSelectedMatchId(null)} 
+      />
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Stats Summary */}
@@ -239,7 +251,11 @@ export function MatchHistory({ puuid, summonerName }: MatchHistoryProps) {
         </CardHeader>
         <CardContent className="space-y-3">
           {matchPerformance.map((match) => (
-            <MatchCard key={match.match_id} match={match} />
+            <MatchCard 
+              key={match.match_id} 
+              match={match} 
+              onClick={() => setSelectedMatchId(match.match_id)}
+            />
           ))}
           
           {matchPerformance.length >= limit && (
