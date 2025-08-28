@@ -97,16 +97,16 @@ export function DetailedMatchView({ matchId, onBack }: DetailedMatchViewProps) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={onBack}>
+          <Button variant="outline" size="sm" onClick={onBack} className="border-purple-400/30 text-purple-300 hover:bg-purple-900/20">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
-          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-8 w-48 bg-slate-700/50" />
         </div>
-        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-64 w-full bg-slate-700/50" />
         <div className="grid grid-cols-2 gap-6">
-          <Skeleton className="h-96 w-full" />
-          <Skeleton className="h-96 w-full" />
+          <Skeleton className="h-96 w-full bg-slate-700/50" />
+          <Skeleton className="h-96 w-full bg-slate-700/50" />
         </div>
       </div>
     )
@@ -116,14 +116,14 @@ export function DetailedMatchView({ matchId, onBack }: DetailedMatchViewProps) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={onBack}>
+          <Button variant="outline" size="sm" onClick={onBack} className="border-purple-400/30 text-purple-300 hover:bg-purple-900/20">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
         </div>
-        <Card>
+        <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
           <CardContent className="p-6">
-            <div className="text-center text-muted-foreground">
+            <div className="text-center text-slate-300">
               Failed to load match details. Please try again.
             </div>
           </CardContent>
@@ -168,13 +168,13 @@ export function DetailedMatchView({ matchId, onBack }: DetailedMatchViewProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={onBack}>
+          <Button variant="outline" size="sm" onClick={onBack} className="border-purple-400/30 text-purple-300 hover:bg-purple-900/20">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Match History
           </Button>
           <div>
-            <h2 className="text-2xl font-bold">Match Details</h2>
-            <p className="text-muted-foreground">
+            <h2 className="text-2xl font-bold text-white">Match Details</h2>
+            <p className="text-slate-400">
               {getQueueName(match.queue_id)} • {matchDate} • {match.duration_minutes}m
             </p>
           </div>
@@ -183,19 +183,19 @@ export function DetailedMatchView({ matchId, onBack }: DetailedMatchViewProps) {
 
       {/* Match Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
+        <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Crown className="w-5 h-5" />
+            <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <Crown className="w-5 h-5 text-yellow-400" />
               Match Result
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-center space-y-2">
-              <div className="text-3xl font-bold">
+              <div className={`text-3xl font-bold ${team1Won ? 'text-blue-400' : 'text-red-400'}`}>
                 {team1Won ? 'Blue Team Victory' : 'Red Team Victory'}
               </div>
-              <div className="text-lg text-muted-foreground">
+              <div className="text-lg text-slate-300">
                 {team1Stats.kills + team1Stats.assists}/{team1Stats.deaths} vs{' '}
                 {team2Stats.kills + team2Stats.assists}/{team2Stats.deaths}
               </div>
@@ -203,43 +203,43 @@ export function DetailedMatchView({ matchId, onBack }: DetailedMatchViewProps) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Sword className="w-5 h-5" />
+            <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <Sword className="w-5 h-5 text-red-400" />
               Total Damage
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-blue-600 font-medium">Blue Team</span>
-                <span>{team1Stats.damage.toLocaleString()}</span>
+                <span className="text-blue-400 font-medium">Blue Team</span>
+                <span className="text-white">{team1Stats.damage.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-red-600 font-medium">Red Team</span>
-                <span>{team2Stats.damage.toLocaleString()}</span>
+                <span className="text-red-400 font-medium">Red Team</span>
+                <span className="text-white">{team2Stats.damage.toLocaleString()}</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Coins className="w-5 h-5" />
+            <CardTitle className="text-lg flex items-center gap-2 text-white">
+              <Coins className="w-5 h-5 text-yellow-400" />
               Total Gold
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-blue-600 font-medium">Blue Team</span>
-                <span>{(team1Stats.gold / 1000).toFixed(1)}k</span>
+                <span className="text-blue-400 font-medium">Blue Team</span>
+                <span className="text-white">{(team1Stats.gold / 1000).toFixed(1)}k</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-red-600 font-medium">Red Team</span>
-                <span>{(team2Stats.gold / 1000).toFixed(1)}k</span>
+                <span className="text-red-400 font-medium">Red Team</span>
+                <span className="text-white">{(team2Stats.gold / 1000).toFixed(1)}k</span>
               </div>
             </div>
           </CardContent>
@@ -249,21 +249,21 @@ export function DetailedMatchView({ matchId, onBack }: DetailedMatchViewProps) {
       {/* Teams */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Blue Team */}
-        <Card>
+        <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-blue-500 rounded"></div>
+            <CardTitle className="flex items-center gap-2 text-white">
+              <div className="w-4 h-4 bg-blue-400 rounded"></div>
               Blue Team
-              {team1Won && <Crown className="w-5 h-5 text-yellow-500" />}
+              {team1Won && <Crown className="w-5 h-5 text-yellow-400" />}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {team1.map((participant) => (
-                <div key={participant.participant_id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                <div key={participant.participant_id} className="flex items-center gap-3 p-3 bg-slate-700/30 rounded-lg border border-slate-600/30 hover:bg-slate-700/50 transition-colors">
                   {/* Champion */}
                   <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <Avatar className="w-10 h-10">
+                    <Avatar className="w-10 h-10 border-2 border-blue-400/50">
                       <img 
                         src={getChampionImageUrl(participant.champion_name)}
                         alt={participant.champion_name}
@@ -275,25 +275,29 @@ export function DetailedMatchView({ matchId, onBack }: DetailedMatchViewProps) {
                       />
                     </Avatar>
                     <div className="min-w-0">
-                      <div className="font-medium truncate">{participant.champion_name}</div>
-                      <div className="text-sm text-muted-foreground">Level {participant.champion_level}</div>
+                      <div className="font-medium truncate text-white">{participant.champion_name}</div>
+                      <div className="text-sm text-slate-400">Level {participant.champion_level}</div>
                     </div>
                   </div>
 
                   {/* KDA */}
                   <div className="text-center min-w-[80px]">
-                    <div className="font-medium">
+                    <div className={`font-medium ${
+                      participant.kda_ratio >= 3.0 ? 'text-green-400' :
+                      participant.kda_ratio >= 2.0 ? 'text-blue-400' :
+                      participant.kda_ratio >= 1.0 ? 'text-yellow-400' : 'text-red-400'
+                    }`}>
                       {participant.kills}/{participant.deaths}/{participant.assists}
                     </div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-sm text-slate-400">
                       {participant.kda_ratio} KDA
                     </div>
                   </div>
 
                   {/* CS & Gold */}
                   <div className="text-center min-w-[80px]">
-                    <div className="font-medium">{participant.total_minions_killed} CS</div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="font-medium text-white">{participant.total_minions_killed} CS</div>
+                    <div className="text-sm text-slate-400">
                       {(participant.gold_earned / 1000).toFixed(1)}k gold
                     </div>
                   </div>
@@ -309,7 +313,7 @@ export function DetailedMatchView({ matchId, onBack }: DetailedMatchViewProps) {
                       participant.items.item5,
                       participant.items.item6
                     ].map((itemId, index) => (
-                      <div key={index} className="w-8 h-8 bg-gray-200 rounded border">
+                      <div key={index} className="w-8 h-8 bg-slate-600/50 rounded border border-slate-500/50 hover:border-slate-400/50 transition-colors">
                         {itemId !== 0 && (
                           <img
                             src={getItemImageUrl(itemId)}
@@ -331,21 +335,21 @@ export function DetailedMatchView({ matchId, onBack }: DetailedMatchViewProps) {
         </Card>
 
         {/* Red Team */}
-        <Card>
+        <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-red-500 rounded"></div>
+            <CardTitle className="flex items-center gap-2 text-white">
+              <div className="w-4 h-4 bg-red-400 rounded"></div>
               Red Team
-              {team2Won && <Crown className="w-5 h-5 text-yellow-500" />}
+              {team2Won && <Crown className="w-5 h-5 text-yellow-400" />}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {team2.map((participant) => (
-                <div key={participant.participant_id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                <div key={participant.participant_id} className="flex items-center gap-3 p-3 bg-slate-700/30 rounded-lg border border-slate-600/30 hover:bg-slate-700/50 transition-colors">
                   {/* Champion */}
                   <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <Avatar className="w-10 h-10">
+                    <Avatar className="w-10 h-10 border-2 border-red-400/50">
                       <img 
                         src={getChampionImageUrl(participant.champion_name)}
                         alt={participant.champion_name}
@@ -357,25 +361,29 @@ export function DetailedMatchView({ matchId, onBack }: DetailedMatchViewProps) {
                       />
                     </Avatar>
                     <div className="min-w-0">
-                      <div className="font-medium truncate">{participant.champion_name}</div>
-                      <div className="text-sm text-muted-foreground">Level {participant.champion_level}</div>
+                      <div className="font-medium truncate text-white">{participant.champion_name}</div>
+                      <div className="text-sm text-slate-400">Level {participant.champion_level}</div>
                     </div>
                   </div>
 
                   {/* KDA */}
                   <div className="text-center min-w-[80px]">
-                    <div className="font-medium">
+                    <div className={`font-medium ${
+                      participant.kda_ratio >= 3.0 ? 'text-green-400' :
+                      participant.kda_ratio >= 2.0 ? 'text-blue-400' :
+                      participant.kda_ratio >= 1.0 ? 'text-yellow-400' : 'text-red-400'
+                    }`}>
                       {participant.kills}/{participant.deaths}/{participant.assists}
                     </div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-sm text-slate-400">
                       {participant.kda_ratio} KDA
                     </div>
                   </div>
 
                   {/* CS & Gold */}
                   <div className="text-center min-w-[80px]">
-                    <div className="font-medium">{participant.total_minions_killed} CS</div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="font-medium text-white">{participant.total_minions_killed} CS</div>
+                    <div className="text-sm text-slate-400">
                       {(participant.gold_earned / 1000).toFixed(1)}k gold
                     </div>
                   </div>
@@ -391,7 +399,7 @@ export function DetailedMatchView({ matchId, onBack }: DetailedMatchViewProps) {
                       participant.items.item5,
                       participant.items.item6
                     ].map((itemId, index) => (
-                      <div key={index} className="w-8 h-8 bg-gray-200 rounded border">
+                      <div key={index} className="w-8 h-8 bg-slate-600/50 rounded border border-slate-500/50 hover:border-slate-400/50 transition-colors">
                         {itemId !== 0 && (
                           <img
                             src={getItemImageUrl(itemId)}
@@ -414,38 +422,41 @@ export function DetailedMatchView({ matchId, onBack }: DetailedMatchViewProps) {
       </div>
 
       {/* Team Statistics Comparison */}
-      <Card>
+      <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
         <CardHeader>
-          <CardTitle>Team Statistics</CardTitle>
+          <CardTitle className="text-white flex items-center gap-2">
+            <Eye className="w-5 h-5 text-purple-400" />
+            Team Statistics
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="font-medium text-sm text-muted-foreground mb-2">Kills</div>
-              <div className="text-2xl font-bold text-blue-600">{team1Stats.kills}</div>
-              <div className="text-sm text-muted-foreground">vs</div>
-              <div className="text-2xl font-bold text-red-600">{team2Stats.kills}</div>
+            <div className="text-center p-4 bg-slate-700/30 rounded-lg border border-slate-600/30">
+              <div className="font-medium text-sm text-slate-400 mb-2">Kills</div>
+              <div className="text-2xl font-bold text-blue-400">{team1Stats.kills}</div>
+              <div className="text-sm text-slate-500 my-1">vs</div>
+              <div className="text-2xl font-bold text-red-400">{team2Stats.kills}</div>
             </div>
             
-            <div className="text-center">
-              <div className="font-medium text-sm text-muted-foreground mb-2">Total CS</div>
-              <div className="text-2xl font-bold text-blue-600">{team1Stats.cs}</div>
-              <div className="text-sm text-muted-foreground">vs</div>
-              <div className="text-2xl font-bold text-red-600">{team2Stats.cs}</div>
+            <div className="text-center p-4 bg-slate-700/30 rounded-lg border border-slate-600/30">
+              <div className="font-medium text-sm text-slate-400 mb-2">Total CS</div>
+              <div className="text-2xl font-bold text-blue-400">{team1Stats.cs}</div>
+              <div className="text-sm text-slate-500 my-1">vs</div>
+              <div className="text-2xl font-bold text-red-400">{team2Stats.cs}</div>
             </div>
             
-            <div className="text-center">
-              <div className="font-medium text-sm text-muted-foreground mb-2">Vision Score</div>
-              <div className="text-2xl font-bold text-blue-600">{team1Stats.vision}</div>
-              <div className="text-sm text-muted-foreground">vs</div>
-              <div className="text-2xl font-bold text-red-600">{team2Stats.vision}</div>
+            <div className="text-center p-4 bg-slate-700/30 rounded-lg border border-slate-600/30">
+              <div className="font-medium text-sm text-slate-400 mb-2">Vision Score</div>
+              <div className="text-2xl font-bold text-blue-400">{team1Stats.vision}</div>
+              <div className="text-sm text-slate-500 my-1">vs</div>
+              <div className="text-2xl font-bold text-red-400">{team2Stats.vision}</div>
             </div>
             
-            <div className="text-center">
-              <div className="font-medium text-sm text-muted-foreground mb-2">Total Damage</div>
-              <div className="text-lg font-bold text-blue-600">{(team1Stats.damage / 1000).toFixed(0)}k</div>
-              <div className="text-sm text-muted-foreground">vs</div>
-              <div className="text-lg font-bold text-red-600">{(team2Stats.damage / 1000).toFixed(0)}k</div>
+            <div className="text-center p-4 bg-slate-700/30 rounded-lg border border-slate-600/30">
+              <div className="font-medium text-sm text-slate-400 mb-2">Total Damage</div>
+              <div className="text-lg font-bold text-blue-400">{(team1Stats.damage / 1000).toFixed(0)}k</div>
+              <div className="text-sm text-slate-500 my-1">vs</div>
+              <div className="text-lg font-bold text-red-400">{(team2Stats.damage / 1000).toFixed(0)}k</div>
             </div>
           </div>
         </CardContent>
