@@ -137,12 +137,12 @@ export function Analytics({ puuid, summonerName }: AnalyticsProps) {
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i}>
+            <Card key={i} className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
               <CardHeader>
-                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-5 w-24 bg-slate-700" />
               </CardHeader>
               <CardContent>
-                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-8 w-16 bg-slate-700" />
               </CardContent>
             </Card>
           ))}
@@ -156,8 +156,8 @@ export function Analytics({ puuid, summonerName }: AnalyticsProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Performance Analytics</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-2xl font-bold text-white">Performance Analytics</h2>
+          <p className="text-slate-300">
             {summonerName && `${summonerName} • `}
             Last {days} days
           </p>
@@ -167,75 +167,75 @@ export function Analytics({ puuid, summonerName }: AnalyticsProps) {
       {/* Overview Stats Grid */}
       {overviewStats && (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          <Card>
+          <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardTitle className="text-sm font-medium text-slate-400">
                 Games Played
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{overviewStats.total_games}</div>
+              <div className="text-2xl font-bold text-white">{overviewStats.total_games}</div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardTitle className="text-sm font-medium text-slate-400">
                 Win Rate
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{overviewStats.win_rate}%</div>
-              <Badge variant={overviewStats.win_rate >= 60 ? "default" : overviewStats.win_rate >= 50 ? "secondary" : "destructive"}>
+              <div className="text-2xl font-bold text-purple-400">{overviewStats.win_rate}%</div>
+              <Badge className={`${overviewStats.win_rate >= 60 ? "bg-green-600" : overviewStats.win_rate >= 50 ? "bg-blue-600" : "bg-red-600"} text-white`}>
                 {overviewStats.wins}W {overviewStats.losses}L
               </Badge>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardTitle className="text-sm font-medium text-slate-400">
                 Avg KDA
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{overviewStats.avg_kda}</div>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-2xl font-bold text-blue-400">{overviewStats.avg_kda}</div>
+              <div className="text-sm text-slate-400">
                 {overviewStats.avg_kills} / {overviewStats.avg_deaths} / {overviewStats.avg_assists}
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardTitle className="text-sm font-medium text-slate-400">
                 CS/min
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{overviewStats.avg_cs_per_min}</div>
+              <div className="text-2xl font-bold text-green-400">{overviewStats.avg_cs_per_min}</div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardTitle className="text-sm font-medium text-slate-400">
                 Vision Score
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{overviewStats.avg_vision_score}</div>
+              <div className="text-2xl font-bold text-yellow-400">{overviewStats.avg_vision_score}</div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardTitle className="text-sm font-medium text-slate-400">
                 Playtime
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{overviewStats.total_playtime_hours}h</div>
+              <div className="text-2xl font-bold text-cyan-400">{overviewStats.total_playtime_hours}h</div>
             </CardContent>
           </Card>
         </div>
@@ -244,62 +244,77 @@ export function Analytics({ puuid, summonerName }: AnalyticsProps) {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* GPI Radar Chart */}
-        <Card>
+        <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
           <CardHeader>
-            <CardTitle>Performance Radar</CardTitle>
-            <p className="text-sm text-muted-foreground">
+            <CardTitle className="text-white">Performance Radar</CardTitle>
+            <p className="text-sm text-slate-400">
               GPI-style metrics on a 0-10 scale
             </p>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <RadarChart data={radarData}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="metric" tick={{ fontSize: 12 }} />
+                <PolarGrid stroke="#475569" />
+                <PolarAngleAxis dataKey="metric" tick={{ fontSize: 12, fill: '#e2e8f0' }} />
                 <PolarRadiusAxis 
                   angle={90} 
                   domain={[0, 10]} 
-                  tick={{ fontSize: 10 }}
+                  tick={{ fontSize: 10, fill: '#94a3b8' }}
+                  stroke="#64748b"
                 />
                 <Radar
                   name="Performance"
                   dataKey="value"
-                  stroke="#3b82f6"
-                  fill="#3b82f6"
+                  stroke="#8b5cf6"
+                  fill="#8b5cf6"
                   fillOpacity={0.3}
                   strokeWidth={2}
                 />
-                <Tooltip />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: '#1e293b',
+                    border: '1px solid #475569',
+                    borderRadius: '8px',
+                    color: '#e2e8f0'
+                  }}
+                />
               </RadarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
         {/* Champion Performance Chart */}
-        <Card>
+        <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
           <CardHeader>
-            <CardTitle>Champion Win Rates</CardTitle>
-            <p className="text-sm text-muted-foreground">
+            <CardTitle className="text-white">Champion Win Rates</CardTitle>
+            <p className="text-sm text-slate-400">
               Top played champions by win rate
             </p>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={championChartData}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
                 <XAxis 
                   dataKey="name" 
-                  tick={{ fontSize: 11 }}
+                  tick={{ fontSize: 11, fill: '#e2e8f0' }}
                   angle={-45}
                   textAnchor="end"
                   height={80}
+                  stroke="#64748b"
                 />
-                <YAxis tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 11, fill: '#e2e8f0' }} stroke="#64748b" />
                 <Tooltip 
                   formatter={(value, name) => [
                     `${value}${name === 'winRate' ? '%' : ''}`,
                     name === 'winRate' ? 'Win Rate' : name === 'games' ? 'Games' : 'KDA'
                   ]}
+                  contentStyle={{
+                    backgroundColor: '#1e293b',
+                    border: '1px solid #475569',
+                    borderRadius: '8px',
+                    color: '#e2e8f0'
+                  }}
                 />
                 <Bar dataKey="winRate" fill="#10b981" />
               </BarChart>
@@ -310,10 +325,10 @@ export function Analytics({ puuid, summonerName }: AnalyticsProps) {
 
       {/* Champion Performance Table */}
       {championPerformance && championPerformance.length > 0 && (
-        <Card>
+        <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
           <CardHeader>
-            <CardTitle>Champion Statistics</CardTitle>
-            <p className="text-sm text-muted-foreground">
+            <CardTitle className="text-white">Champion Statistics</CardTitle>
+            <p className="text-sm text-slate-400">
               Detailed performance by champion
             </p>
           </CardHeader>
@@ -321,28 +336,28 @@ export function Analytics({ puuid, summonerName }: AnalyticsProps) {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2">Champion</th>
-                    <th className="text-center py-2">Games</th>
-                    <th className="text-center py-2">Win Rate</th>
-                    <th className="text-center py-2">KDA</th>
-                    <th className="text-center py-2">CS/min</th>
-                    <th className="text-center py-2">Avg Damage</th>
+                  <tr className="border-b border-slate-600">
+                    <th className="text-left py-2 text-slate-300">Champion</th>
+                    <th className="text-center py-2 text-slate-300">Games</th>
+                    <th className="text-center py-2 text-slate-300">Win Rate</th>
+                    <th className="text-center py-2 text-slate-300">KDA</th>
+                    <th className="text-center py-2 text-slate-300">CS/min</th>
+                    <th className="text-center py-2 text-slate-300">Avg Damage</th>
                   </tr>
                 </thead>
                 <tbody>
                   {championPerformance.slice(0, 10).map((champ) => (
-                    <tr key={champ.champion_id} className="border-b hover:bg-muted/50">
-                      <td className="py-2 font-medium">{champ.champion_name}</td>
-                      <td className="text-center py-2">{champ.total_games}</td>
+                    <tr key={champ.champion_id} className="border-b border-slate-700 hover:bg-slate-700/30">
+                      <td className="py-2 font-medium text-white">{champ.champion_name}</td>
+                      <td className="text-center py-2 text-slate-300">{champ.total_games}</td>
                       <td className="text-center py-2">
-                        <Badge variant={champ.win_rate >= 60 ? "default" : champ.win_rate >= 50 ? "secondary" : "outline"}>
+                        <Badge className={`${champ.win_rate >= 60 ? "bg-green-600" : champ.win_rate >= 50 ? "bg-blue-600" : "bg-slate-600"} text-white`}>
                           {champ.win_rate}%
                         </Badge>
                       </td>
-                      <td className="text-center py-2">{champ.avg_kda}</td>
-                      <td className="text-center py-2">{champ.avg_cs_per_min}</td>
-                      <td className="text-center py-2">{Math.round(champ.avg_damage_to_champions).toLocaleString()}</td>
+                      <td className="text-center py-2 text-slate-300">{champ.avg_kda}</td>
+                      <td className="text-center py-2 text-slate-300">{champ.avg_cs_per_min}</td>
+                      <td className="text-center py-2 text-slate-300">{Math.round(champ.avg_damage_to_champions).toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -53,82 +53,113 @@ export function MatchCard({ match, onClick }: MatchCardProps) {
 
   return (
     <Card 
-      className={`group transition-all hover:shadow-md ${match.win ? 'border-l-4 border-l-green-500 bg-green-50/30' : 'border-l-4 border-l-red-500 bg-red-50/30'} ${onClick ? 'cursor-pointer hover:bg-muted/50' : ''}`}
+      className={`group transition-all hover:shadow-lg border-slate-700/50 bg-slate-800/30 backdrop-blur ${
+        match.win 
+          ? 'border-l-4 border-l-green-400 hover:bg-green-900/10' 
+          : 'border-l-4 border-l-red-400 hover:bg-red-900/10'
+      } ${onClick ? 'cursor-pointer' : ''}`}
       onClick={onClick}
     >
       <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          {/* Left side - Champion and Result */}
-          <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-6">
+          {/* Left section - Time and Result */}
+          <div className="flex flex-col items-center min-w-[80px]">
+            <Badge 
+              className={`mb-2 px-3 py-1 font-semibold ${
+                match.win 
+                  ? 'bg-green-600 text-white' 
+                  : 'bg-red-600 text-white'
+              }`}
+            >
+              {match.win ? "VICTORY" : "DEFEAT"}
+            </Badge>
+            <div className="text-slate-300 text-sm text-center">
+              <div className="font-medium">{formatDuration(match.game_duration_minutes)}</div>
+              <div className="text-xs text-slate-400">{formatTimeAgo(match.game_creation)}</div>
+            </div>
+          </div>
+
+          {/* Champion and Role */}
+          <div className="flex items-center space-x-3">
             <div className="relative">
-              <Avatar className="h-16 w-16 border-2 border-slate-300">
+              <Avatar className="h-14 w-14 border-2 border-purple-400/50">
                 <AvatarImage 
                   src={getChampionImageUrl(match.champion_name)} 
                   alt={match.champion_name}
                   className="object-cover"
                 />
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-lg">
+                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white font-bold">
                   {getChampionFallback(match.champion_name)}
                 </AvatarFallback>
               </Avatar>
-              <Badge 
-                variant={match.win ? "success" : "destructive"} 
-                className="absolute -bottom-1 -right-1 px-1 py-0 text-xs"
-              >
-                {match.win ? "W" : "L"}
-              </Badge>
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-purple-600 rounded-full flex items-center justify-center border-2 border-slate-900">
+                <span className="text-white text-xs font-bold">{match.team_position === "JUNGLE" ? "🌿" : "⚔️"}</span>
+              </div>
             </div>
             
             <div>
-              <h3 className="font-semibold text-lg">{match.champion_name}</h3>
-              <p className="text-sm text-muted-foreground">
-                {formatTimeAgo(match.game_creation)}
+              <h3 className="font-semibold text-white">{match.champion_name}</h3>
+              <p className="text-sm text-slate-400">
+                {QUEUE_TYPES[420] || "Ranked Solo"}
               </p>
             </div>
           </div>
 
-          {/* Center - KDA and Stats */}
-          <div className="flex flex-col items-center space-y-2">
+          {/* KDA Stats */}
+          <div className="flex flex-col items-center min-w-[100px]">
             <div className="text-center">
-              <div className="text-lg font-bold">
+              <div className={`text-lg font-bold ${
+                match.kda_ratio >= 3.0 ? 'text-green-400' :
+                match.kda_ratio >= 2.0 ? 'text-blue-400' :
+                match.kda_ratio >= 1.0 ? 'text-yellow-400' : 'text-red-400'
+              }`}>
                 {formatKDA(match.kills, match.deaths, match.assists)}
               </div>
-              <div className={`text-sm ${getKDAColor(match.kda_ratio)}`}>
+              <div className="text-sm text-slate-400">
                 {match.kda_ratio.toFixed(2)} KDA
-              </div>
-            </div>
-            
-            <div className="flex space-x-4 text-sm text-muted-foreground">
-              <div className="text-center">
-                <div className="font-medium">{match.cs}</div>
-                <div className="text-xs">CS</div>
-              </div>
-              <div className="text-center">
-                <div className="font-medium">{(match.damage_to_champions / 1000).toFixed(1)}k</div>
-                <div className="text-xs">DMG</div>
-              </div>
-              <div className="text-center">
-                <div className="font-medium">{match.vision_score}</div>
-                <div className="text-xs">Vision</div>
               </div>
             </div>
           </div>
 
-          {/* Right side - Game Info */}
-          <div className="text-right">
-            <div className="font-medium">{formatDuration(match.game_duration_minutes)}</div>
-            <div className="text-sm text-muted-foreground">
-              {QUEUE_TYPES[420] || "Custom Game"}
+          {/* Game Stats */}
+          <div className="flex space-x-6 text-sm flex-1 justify-center">
+            <div className="text-center">
+              <div className="font-medium text-white">{match.cs}</div>
+              <div className="text-xs text-slate-400">CS</div>
             </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              {(match.gold_earned / 1000).toFixed(1)}k gold
+            <div className="text-center">
+              <div className="font-medium text-white">{(match.cs / match.game_duration_minutes).toFixed(1)}</div>
+              <div className="text-xs text-slate-400">CS/min</div>
             </div>
-            {onClick && (
-              <div className="text-xs text-blue-600 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                Click for details →
-              </div>
-            )}
+            <div className="text-center">
+              <div className="font-medium text-white">{(match.damage_to_champions / 1000).toFixed(1)}k</div>
+              <div className="text-xs text-slate-400">Damage</div>
+            </div>
+            <div className="text-center">
+              <div className="font-medium text-white">{match.vision_score}</div>
+              <div className="text-xs text-slate-400">Vision</div>
+            </div>
+            <div className="text-center">
+              <div className="font-medium text-white">{(match.gold_earned / 1000).toFixed(1)}k</div>
+              <div className="text-xs text-slate-400">Gold</div>
+            </div>
           </div>
+
+          {/* Items placeholder - would need item data from backend */}
+          <div className="flex space-x-1">
+            {[1,2,3,4,5,6].map((i) => (
+              <div key={i} className="w-8 h-8 bg-slate-700/50 rounded border border-slate-600 flex items-center justify-center">
+                <span className="text-slate-500 text-xs">🔹</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Click indicator */}
+          {onClick && (
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="text-purple-400 text-xs">→</div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

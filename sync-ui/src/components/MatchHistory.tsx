@@ -78,16 +78,16 @@ export function MatchHistory({ puuid, summonerName }: MatchHistoryProps) {
     return (
       <div className="space-y-6">
         {/* Loading stats */}
-        <Card>
+        <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
           <CardHeader>
-            <CardTitle>Recent Performance</CardTitle>
+            <CardTitle className="text-white">Recent Performance</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="text-center space-y-2">
-                  <Skeleton className="h-8 w-16 mx-auto" />
-                  <Skeleton className="h-4 w-12 mx-auto" />
+                  <Skeleton className="h-8 w-16 mx-auto bg-slate-700" />
+                  <Skeleton className="h-4 w-12 mx-auto bg-slate-700" />
                 </div>
               ))}
             </div>
@@ -95,29 +95,29 @@ export function MatchHistory({ puuid, summonerName }: MatchHistoryProps) {
         </Card>
 
         {/* Loading match cards */}
-        <Card>
+        <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
           <CardHeader>
-            <CardTitle>Match History</CardTitle>
+            <CardTitle className="text-white">Match History</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {[...Array(5)].map((_, i) => (
-              <Card key={i}>
+              <Card key={i} className="border-slate-700/50 bg-slate-800/20">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <Skeleton className="h-16 w-16 rounded-full" />
+                      <Skeleton className="h-16 w-16 rounded-full bg-slate-700" />
                       <div className="space-y-2">
-                        <Skeleton className="h-5 w-24" />
-                        <Skeleton className="h-4 w-16" />
+                        <Skeleton className="h-5 w-24 bg-slate-700" />
+                        <Skeleton className="h-4 w-16 bg-slate-700" />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Skeleton className="h-5 w-20" />
-                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-5 w-20 bg-slate-700" />
+                      <Skeleton className="h-4 w-16 bg-slate-700" />
                     </div>
                     <div className="space-y-2">
-                      <Skeleton className="h-5 w-16" />
-                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-5 w-16 bg-slate-700" />
+                      <Skeleton className="h-4 w-20 bg-slate-700" />
                     </div>
                   </div>
                 </CardContent>
@@ -131,14 +131,14 @@ export function MatchHistory({ puuid, summonerName }: MatchHistoryProps) {
 
   if (error) {
     return (
-      <Card>
+      <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
         <CardHeader>
-          <CardTitle>Match History</CardTitle>
+          <CardTitle className="text-white">Match History</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <p className="text-red-600 mb-4">Failed to load match history</p>
-            <Button onClick={() => refetch()} variant="outline">
+            <p className="text-red-400 mb-4">Failed to load match history</p>
+            <Button onClick={() => refetch()} variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700">
               Try Again
             </Button>
           </div>
@@ -149,14 +149,18 @@ export function MatchHistory({ puuid, summonerName }: MatchHistoryProps) {
 
   if (!matchPerformance || matchPerformance.length === 0) {
     return (
-      <Card>
+      <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
         <CardHeader>
-          <CardTitle>Match History</CardTitle>
+          <CardTitle className="text-white">Match History</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 space-y-4">
-            <p className="text-muted-foreground">No match history found</p>
-            <Button onClick={fetchNewMatches} disabled={fetchingNew}>
+            <p className="text-slate-400">No match history found</p>
+            <Button 
+              onClick={fetchNewMatches} 
+              disabled={fetchingNew}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
               {fetchingNew ? "Fetching..." : "Fetch Recent Matches"}
             </Button>
           </div>
@@ -179,12 +183,12 @@ export function MatchHistory({ puuid, summonerName }: MatchHistoryProps) {
     <div className="space-y-6">
       {/* Stats Summary */}
       {stats && (
-        <Card>
+        <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between text-white">
               Recent Performance
               {summonerName && (
-                <span className="text-base font-normal text-muted-foreground">
+                <span className="text-base font-normal text-slate-300">
                   {summonerName}
                 </span>
               )}
@@ -193,28 +197,28 @@ export function MatchHistory({ puuid, summonerName }: MatchHistoryProps) {
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary">
+                <div className="text-2xl font-bold text-purple-400">
                   {stats.winRate.toFixed(0)}%
                 </div>
-                <div className="text-sm text-muted-foreground">Win Rate</div>
+                <div className="text-sm text-slate-400">Win Rate</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary">
+                <div className="text-2xl font-bold text-blue-400">
                   {stats.avgKDA.toFixed(2)}
                 </div>
-                <div className="text-sm text-muted-foreground">Avg KDA</div>
+                <div className="text-sm text-slate-400">Avg KDA</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary">
+                <div className="text-2xl font-bold text-green-400">
                   {stats.avgCS.toFixed(0)}
                 </div>
-                <div className="text-sm text-muted-foreground">Avg CS</div>
+                <div className="text-sm text-slate-400">Avg CS</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary">
+                <div className="text-2xl font-bold text-yellow-400">
                   {stats.totalGames}
                 </div>
-                <div className="text-sm text-muted-foreground">Games</div>
+                <div className="text-sm text-slate-400">Games</div>
               </div>
             </div>
           </CardContent>
@@ -222,18 +226,21 @@ export function MatchHistory({ puuid, summonerName }: MatchHistoryProps) {
       )}
 
       {/* Match History */}
-      <Card>
+      <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className="flex items-center justify-between text-white">
             Match History
             <div className="flex items-center space-x-2">
-              <Badge variant="outline">{matchPerformance.length} matches</Badge>
+              <Badge variant="outline" className="border-purple-400/30 text-purple-300">
+                {matchPerformance.length} matches
+              </Badge>
               <div className="flex space-x-2">
                 <Button 
                   onClick={fetchNewMatches} 
                   disabled={fetchingNew}
                   size="sm"
                   variant="outline"
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700"
                 >
                   {fetchingNew ? "Syncing..." : "Sync New"}
                 </Button>
@@ -242,6 +249,7 @@ export function MatchHistory({ puuid, summonerName }: MatchHistoryProps) {
                   disabled={isLoading || limit >= 50}
                   size="sm"
                   variant="outline"
+                  className="border-slate-600 text-slate-300 hover:bg-slate-700"
                 >
                   Load More
                 </Button>
@@ -264,6 +272,7 @@ export function MatchHistory({ puuid, summonerName }: MatchHistoryProps) {
                 onClick={() => setLimit(prev => prev + 10)} 
                 variant="outline"
                 disabled={isLoading}
+                className="border-slate-600 text-slate-300 hover:bg-slate-700"
               >
                 Load More Matches
               </Button>
