@@ -40,7 +40,10 @@ export function Dashboard() {
         tagLine: match[2].trim()
       }
     }
-    return null
+    return {
+      gameName: input,
+      tagLine: ""
+    }
   }
 
   const handleConnectAccount = async () => {

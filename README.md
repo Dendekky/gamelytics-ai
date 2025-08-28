@@ -8,6 +8,7 @@ A personal League of Legends performance analysis engine inspired by **mobalytic
 - **Node.js** (for Bun package manager)
 - **Python 3.11+** (for FastAPI backend)
 - **Rust** (for Tauri desktop wrapper)
+- **uv** (for Python dependency management) - Install with: `pip install uv` or `winget install AstralSoftware.uv`
 
 ### 🏗️ Project Structure
 ```
@@ -27,14 +28,11 @@ gg-sync/
 # Navigate to backend directory
 cd backend
 
-# Activate virtual environment
-venv\Scripts\activate
-
-# Install dependencies (first time only)
-pip install -r requirements.txt
+# Install dependencies and create virtual environment (first time only)
+uv sync
 
 # Start the FastAPI server
-python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 The backend will be available at:
@@ -85,8 +83,52 @@ bun run build        # Build for production
 ### Backend Development
 ```bash
 cd backend
-venv\Scripts\activate
-python -m uvicorn app.main:app --reload  # Development server
+
+# Install dependencies and create virtual environment (first time only)
+uv sync
+
+# Start development server
+uv run uvicorn app.main:app --reload  # Development server
+```
+
+### Managing Dependencies with uv
+
+This project uses `pyproject.toml` for dependency management. Here are the most common commands:
+
+#### Adding & Removing Packages
+```bash
+# Add a new production dependency
+uv add fastapi uvicorn
+
+# Add a development dependency
+uv add --dev pytest black
+
+# Remove a package
+uv remove package-name
+```
+
+#### Updating Dependencies
+```bash
+# Install/sync all dependencies (run this after git pull)
+uv sync
+
+# Update all dependencies to latest versions
+uv sync --upgrade
+
+# Update a specific package
+uv add package-name --upgrade
+```
+
+#### Environment Information
+```bash
+# Show installed packages
+uv pip list
+
+# Show package information
+uv pip show package-name
+
+# Check for dependency conflicts
+uv pip check
 ```
 
 ### API Testing
@@ -132,8 +174,9 @@ gg-sync/
 │   │   ├── core/             # Configuration
 │   │   ├── schemas/          # Data validation
 │   │   └── services/         # Business logic
-│   ├── venv/                 # Python virtual environment
-│   └── requirements.txt      # Python dependencies
+│   ├── pyproject.toml        # Python dependencies and project config
+│   ├── requirements.txt      # Legacy requirements (deprecated)
+│   └── .venv/                # Python virtual environment (managed by uv)
 └── docs/                     # Documentation
 ```
 
@@ -176,6 +219,43 @@ Both frontend and backend run in development mode with hot reload.
 - **Frontend**: Build with `bun run tauri build`
 - **Backend**: Deploy to cloud service (AWS, Vercel, etc.)
 - **Database**: Migrate from SQLite to PostgreSQL
+
+## 🔧 Troubleshooting
+
+### Installing uv
+If you don't have `uv` installed:
+```bash
+# Using pip
+pip install uv
+
+# Using winget (Windows)
+winget install AstralSoftware.uv
+
+# Using curl (macOS/Linux)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+### Project Dependencies
+This project has been converted to use `pyproject.toml` for modern Python dependency management. The dependencies are organized as:
+
+**Production Dependencies:**
+- `fastapi` - Web framework
+- `uvicorn` - ASGI server
+- `pydantic` - Data validation
+- `sqlalchemy` - Database ORM
+- `httpx` - HTTP client for Riot API
+- `python-dotenv` - Environment variables
+
+**Development Dependencies:**
+- `pytest` - Testing framework
+- `black` - Code formatting
+- `isort` - Import sorting
+
+### Common Issues
+- **"uv command not found"**: Install uv using one of the methods above
+- **"Permission denied"**: Run terminal as Administrator (Windows) or use `sudo` (macOS/Linux)
+- **"Rust not found"**: uv will automatically handle Rust compilation for packages like pydantic-core
+- **"No pyproject.toml found"**: uv will use requirements.txt automatically, or run `uv init` to create a modern project structure
 
 ## 📚 Documentation
 

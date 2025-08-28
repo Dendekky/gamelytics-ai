@@ -1,0 +1,32 @@
+[project]
+name = "gg-sync-backend"
+version = "0.1.0"
+description = "League of Legends Performance Analytics Backend"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "sqlalchemy>=2.0.23",
+    "alembic>=1.12.1",
+    "aiosqlite>=0.19.0",
+    "httpx>=0.25.2",
+    "python-dotenv>=1.0.0",
+    "python-multipart>=0.0.6",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.4.3",
+    "pytest-asyncio>=0.21.1",
+    "black>=23.11.0",
+    "isort>=5.12.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
