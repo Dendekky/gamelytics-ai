@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { MatchHistory } from "./MatchHistory"
+import { Analytics } from "./Analytics"
 
 interface SummonerResponse {
   puuid: string
@@ -25,6 +26,7 @@ export function Dashboard() {
   const [isLoading, setIsLoading] = useState(false)
   const [summonerData, setSummonerData] = useState<SummonerResponse | null>(null)
   const [error, setError] = useState("")
+  const [activeTab, setActiveTab] = useState<"matches" | "analytics">("matches")
 
   const parseRiotId = (input: string): { gameName: string; tagLine: string } | null => {
     // Parse "GameName#1234" format
@@ -269,16 +271,53 @@ export function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* Match History Section - Show when summoner is connected */}
+      {/* Connected Summoner Section - Show tabs for Match History and Analytics */}
       {summonerData && (
-        <div className="max-w-6xl mx-auto">
-          <MatchHistory 
-            puuid={summonerData.puuid} 
-            summonerName={summonerData.game_name && summonerData.tag_line 
-              ? `${summonerData.game_name}#${summonerData.tag_line}`
-              : summonerData.name || "Unknown Summoner"
-            }
-          />
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Tab Navigation */}
+          <div className="flex space-x-1 bg-muted p-1 rounded-lg w-fit mx-auto">
+            <button
+              onClick={() => setActiveTab("matches")}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                activeTab === "matches"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              📜 Match History
+            </button>
+            <button
+              onClick={() => setActiveTab("analytics")}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                activeTab === "analytics"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              📊 Analytics
+            </button>
+          </div>
+
+          {/* Tab Content */}
+          {activeTab === "matches" && (
+            <MatchHistory 
+              puuid={summonerData.puuid} 
+              summonerName={summonerData.game_name && summonerData.tag_line 
+                ? `${summonerData.game_name}#${summonerData.tag_line}`
+                : summonerData.name || "Unknown Summoner"
+              }
+            />
+          )}
+
+          {activeTab === "analytics" && (
+            <Analytics 
+              puuid={summonerData.puuid} 
+              summonerName={summonerData.game_name && summonerData.tag_line 
+                ? `${summonerData.game_name}#${summonerData.tag_line}`
+                : summonerData.name || "Unknown Summoner"
+              }
+            />
+          )}
         </div>
       )}
 
