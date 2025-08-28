@@ -135,7 +135,7 @@ async def get_match_detail(
             print(f"❌ Match not found in database: {match_id}")
             raise HTTPException(status_code=404, detail="Match not found")
         
-        print(f"✅ Found match: {match.match_id}, participants loaded: {len(list(match.participants)) if match.participants else 0}")
+        print(f"✅ Found match: {match.match_id}")
         
         # Create base response
         match_response = MatchResponse(
@@ -154,12 +154,9 @@ async def get_match_detail(
         if include_participants:
             participants = []
             try:
-                # Try to use the relationship first
-                participant_list = list(match.participants) if match.participants else []
-                if not participant_list:
-                    # Fallback: query participants separately
-                    print("🔄 Relationship empty, fetching participants separately...")
-                    participant_list = await MatchService.get_participants_by_match_id(db, match_id)
+                # Fetch participants using the service method to avoid async issues
+                participant_list = await MatchService.get_participants_by_match_id(db, match_id)
+                print(f"🔍 Found {len(participant_list)} participants for match {match_id}")
                 
                 for participant in participant_list:
                     participant_response = MatchParticipantResponse(
@@ -187,6 +184,8 @@ async def get_match_detail(
                 
             except Exception as participant_error:
                 print(f"❌ Error processing participants: {str(participant_error)}")
+                import traceback
+                traceback.print_exc()
                 # If participants fail, still return the match without participants
                 print("⚠️ Returning match without participants due to error")
         

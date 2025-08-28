@@ -41,7 +41,7 @@ class Match(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), doc="Last update")
     
     # Relationships
-    participants = relationship("MatchParticipant", back_populates="match", lazy="dynamic")
+    participants = relationship("MatchParticipant", back_populates="match", lazy="select")
     
     def __repr__(self):
         return f"<Match(match_id='{self.match_id}', queue_id={self.queue_id}, duration={self.game_duration}s)>"
