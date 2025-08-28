@@ -388,3 +388,33 @@ gg-sync/
 - Most viewed statistics
 - Performance improvement tracking
 - Error reporting and crash analytics
+
+---
+
+## 📋 Development Process & Documentation Rules
+
+### Progress Tracking Requirement
+**MANDATORY**: After completing any development step, feature implementation, or significant milestone, the `progress.md` file MUST be updated to reflect:
+
+1. **Completed Tasks**: Move tasks from "in progress" to "completed" with ✅ status
+2. **New Achievements**: Document what was accomplished with specific details
+3. **Next Steps**: Update priority order based on current state
+4. **Status Updates**: Reflect current phase and overall project status
+5. **Technical Details**: Include relevant implementation details and test results
+
+### Documentation Standards
+- Use clear, descriptive task names with implementation details
+- Include verification/testing status for each completed feature
+- Maintain chronological order of achievements
+- Update "Last Updated" timestamp with each change
+- Cross-reference with TODO tracking systems when applicable
+
+### Enforcement
+This rule ensures:
+- **Project Transparency**: Clear visibility into development progress
+- **Knowledge Preservation**: Implementation details are documented
+- **Planning Accuracy**: Next steps are always current and relevant
+- **Team Coordination**: All stakeholders can track real-time progress
+- **Historical Record**: Complete development timeline is maintained
+
+**Note**: Any pull request or development session that implements features without updating `progress.md` should be considered incomplete until documentation is updated.

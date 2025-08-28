@@ -3,12 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
-
-interface SummonerRiotIdData {
-  game_name: string
-  tag_line: string
-  region: string
-}
+import { MatchHistory } from "./MatchHistory"
 
 interface SummonerResponse {
   puuid: string
@@ -230,10 +225,26 @@ export function Dashboard() {
           )}
           
           {summonerData && (
-            <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md">
-              ✅ Connected to {summonerData.game_name || summonerData.name || "Unknown"}
-              {summonerData.tag_line && `#${summonerData.tag_line}`}
-              {summonerData.level && ` (Level ${summonerData.level})`}
+            <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md flex items-center justify-between">
+              <span>
+                ✅ Connected to {summonerData.game_name || summonerData.name || "Unknown"}
+                {summonerData.tag_line && `#${summonerData.tag_line}`}
+                {summonerData.level && ` (Level ${summonerData.level})`}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSummonerData(null)
+                  setError("")
+                  setRiotId("")
+                  setGameName("")
+                  setTagLine("")
+                }}
+                className="ml-2 h-6 px-2 text-xs"
+              >
+                Disconnect
+              </Button>
             </div>
           )}
           
@@ -258,56 +269,71 @@ export function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* Coming Soon Features */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              📊 Analytics
-            </CardTitle>
-            <CardDescription>
-              Deep performance insights and GPI-style radar charts
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="outline" className="w-full" disabled>
-              Coming Soon
-            </Button>
-          </CardContent>
-        </Card>
+      {/* Match History Section - Show when summoner is connected */}
+      {summonerData && (
+        <div className="max-w-6xl mx-auto">
+          <MatchHistory 
+            puuid={summonerData.puuid} 
+            summonerName={summonerData.game_name && summonerData.tag_line 
+              ? `${summonerData.game_name}#${summonerData.tag_line}`
+              : summonerData.name || "Unknown Summoner"
+            }
+          />
+        </div>
+      )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              🏆 Champions
-            </CardTitle>
-            <CardDescription>
-              Champion-specific stats and mastery tracking
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="outline" className="w-full" disabled>
-              Coming Soon
-            </Button>
-          </CardContent>
-        </Card>
+      {/* Coming Soon Features - Show when no summoner connected */}
+      {!summonerData && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                📊 Analytics
+              </CardTitle>
+              <CardDescription>
+                Deep performance insights and GPI-style radar charts
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" className="w-full" disabled>
+                Coming Soon
+              </Button>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              📜 Match History
-            </CardTitle>
-            <CardDescription>
-              Detailed match breakdown and timeline analysis
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="outline" className="w-full" disabled>
-              Coming Soon
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                🏆 Champions
+              </CardTitle>
+              <CardDescription>
+                Champion-specific stats and mastery tracking
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" className="w-full" disabled>
+                Coming Soon
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                📜 Match History
+              </CardTitle>
+              <CardDescription>
+                Detailed match breakdown and timeline analysis
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" className="w-full" disabled>
+                Coming Soon
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 } 
