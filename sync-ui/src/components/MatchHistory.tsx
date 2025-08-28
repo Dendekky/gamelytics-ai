@@ -13,7 +13,7 @@ interface MatchHistoryProps {
 }
 
 export function MatchHistory({ puuid, summonerName }: MatchHistoryProps) {
-  const [limit, setLimit] = useState(10)
+  const [limit, setLimit] = useState(20)
   const [fetchingNew, setFetchingNew] = useState(false)
 
   // Fetch match performance data
@@ -37,7 +37,7 @@ export function MatchHistory({ puuid, summonerName }: MatchHistoryProps) {
     try {
       // First, trigger fetching new matches from Riot API
       const response = await fetch(
-        `http://localhost:8000/api/v1/matches/${puuid}?fetch_new=true&limit=${limit}&region=na1`,
+        `http://localhost:8000/api/v1/matches/${puuid}?fetch_new=true&limit=${Math.max(limit, 20)}&region=na1`,
         { method: 'GET' }
       )
       
@@ -216,14 +216,24 @@ export function MatchHistory({ puuid, summonerName }: MatchHistoryProps) {
             Match History
             <div className="flex items-center space-x-2">
               <Badge variant="outline">{matchPerformance.length} matches</Badge>
-              <Button 
-                onClick={fetchNewMatches} 
-                disabled={fetchingNew}
-                size="sm"
-                variant="outline"
-              >
-                {fetchingNew ? "Syncing..." : "Sync New"}
-              </Button>
+              <div className="flex space-x-2">
+                <Button 
+                  onClick={fetchNewMatches} 
+                  disabled={fetchingNew}
+                  size="sm"
+                  variant="outline"
+                >
+                  {fetchingNew ? "Syncing..." : "Sync New"}
+                </Button>
+                <Button 
+                  onClick={() => setLimit(prev => Math.min(prev + 10, 50))} 
+                  disabled={isLoading || limit >= 50}
+                  size="sm"
+                  variant="outline"
+                >
+                  Load More
+                </Button>
+              </div>
             </div>
           </CardTitle>
         </CardHeader>

@@ -33,7 +33,9 @@ class MatchService:
             .limit(limit)
             .offset(offset)
         )
-        return result.scalars().all()
+        matches = result.scalars().all()
+        print(f"📊 Database query returned {len(matches)} matches for PUUID {puuid[:8]}... (limit: {limit})")
+        return matches
     
     @staticmethod
     async def get_match_participant(
@@ -216,7 +218,7 @@ class MatchService:
         db: AsyncSession,
         puuid: str,
         region: str,
-        count: int = 10
+        count: int = 20
     ) -> List[Match]:
         """
         Fetch recent matches from Riot API and store them in database
@@ -234,20 +236,26 @@ class MatchService:
         
         # Get match IDs from Riot API
         match_ids = await riot_client.get_match_history(puuid, region, count)
+        print(f"🎮 Riot API returned {len(match_ids)} match IDs: {match_ids}")
         
         stored_matches = []
         for match_id in match_ids:
             # Check if we already have this match
             existing_match = await MatchService.get_match_by_id(db, match_id)
             if existing_match:
+                print(f"📋 Using cached match: {match_id}")
                 stored_matches.append(existing_match)
                 continue
             
             # Fetch match details from API
+            print(f"🆕 Fetching new match from Riot API: {match_id}")
             match_data = await riot_client.get_match_details(match_id, region)
             if match_data:
                 # Store match in database
                 stored_match = await MatchService.store_match_data(db, match_data, region)
                 stored_matches.append(stored_match)
+                print(f"✅ Stored new match: {match_id}")
+            else:
+                print(f"❌ Failed to fetch match data for: {match_id}")
         
         return stored_matches
