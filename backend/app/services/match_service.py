@@ -177,6 +177,12 @@ class MatchService:
             summoner_spell_1=participant_data.get("summoner1Id", 0),
             summoner_spell_2=participant_data.get("summoner2Id", 0),
             
+            # Position/Role info
+            team_position=participant_data.get("teamPosition"),
+            individual_position=participant_data.get("individualPosition"),
+            role=participant_data.get("role"),
+            lane=participant_data.get("lane"),
+            
             # KDA stats
             kills=participant_data.get("kills", 0),
             deaths=participant_data.get("deaths", 0),

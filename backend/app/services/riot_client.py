@@ -1,6 +1,7 @@
 import httpx
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from app.core.config import settings
+from .rate_limiter import rate_limited_request, update_rate_limiter_from_response
 
 
 class RiotClient:
@@ -44,6 +45,45 @@ class RiotClient:
             "Content-Type": "application/json",
         }
     
+    async def _make_rate_limited_request(self, url: str, endpoint_name: str = None) -> Optional[Dict[str, Any]]:
+        """
+        Make a rate-limited request to the Riot API
+        
+        Args:
+            url: The full URL to request
+            endpoint_name: Name of the endpoint for rate limiting tracking
+            
+        Returns:
+            JSON response data or None if not found
+        """
+        headers = self._get_headers()
+        
+        # Apply rate limiting
+        await rate_limited_request(endpoint_name)
+        
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(url, headers=headers)
+                
+                # Update rate limiter with response info
+                update_rate_limiter_from_response(response.status_code, dict(response.headers))
+                
+                if response.status_code == 200:
+                    return response.json()
+                elif response.status_code == 404:
+                    return None  # Not found
+                elif response.status_code == 403:
+                    raise ValueError("Invalid or expired API key")
+                elif response.status_code == 429:
+                    raise ValueError("Rate limit exceeded")
+                else:
+                    response.raise_for_status()
+                    
+        except httpx.TimeoutException:
+            raise ValueError("Request timed out")
+        except httpx.RequestError as e:
+            raise ValueError(f"Request failed: {str(e)}")
+    
     def _get_regional_base_url(self, region: str) -> str:
         """Get the regional API base URL"""
         return self.regional_endpoints.get(region.lower())
@@ -66,27 +106,7 @@ class RiotClient:
             raise ValueError(f"Unsupported region: {region}")
         
         url = f"{base_url}/riot/account/v1/accounts/by-riot-id/{game_name}/{tag_line}"
-        headers = self._get_headers()
-        
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(url, headers=headers)
-                
-                if response.status_code == 200:
-                    return response.json()
-                elif response.status_code == 404:
-                    return None  # Account not found
-                elif response.status_code == 403:
-                    raise ValueError("Invalid or expired API key")
-                elif response.status_code == 429:
-                    raise ValueError("Rate limit exceeded")
-                else:
-                    response.raise_for_status()
-                    
-        except httpx.TimeoutException:
-            raise ValueError("Request timed out")
-        except httpx.RequestError as e:
-            raise ValueError(f"Request failed: {str(e)}")
+        return await self._make_rate_limited_request(url, "account-v1")
     
     async def get_summoner_by_puuid(self, puuid: str, region: str) -> Optional[Dict[str, Any]]:
         """
@@ -101,27 +121,7 @@ class RiotClient:
             raise ValueError(f"Unsupported region: {region}")
                 
         url = f"{base_url}/lol/summoner/v4/summoners/by-puuid/{puuid}"
-        headers = self._get_headers()
-        
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(url, headers=headers)
-                
-                if response.status_code == 200:
-                    return response.json()
-                elif response.status_code == 404:
-                    return None  # Summoner not found
-                elif response.status_code == 403:
-                    raise ValueError("Invalid or expired API key")
-                elif response.status_code == 429:
-                    raise ValueError("Rate limit exceeded")
-                else:
-                    response.raise_for_status()
-                    
-        except httpx.TimeoutException:
-            raise ValueError("Request timed out")
-        except httpx.RequestError as e:
-            raise ValueError(f"Request failed: {str(e)}")
+        return await self._make_rate_limited_request(url, "summoner-v4")
         
     async def get_summoner_by_riot_id(self, game_name: str, tag_line: str, region: str) -> Optional[Dict[str, Any]]:
         """
@@ -203,29 +203,9 @@ class RiotClient:
         if not base_url:
             raise ValueError(f"Unsupported region: {region}")
         
-        url = f"{base_url}/lol/match/v5/matches/by-puuid/{puuid}/ids"
-        headers = self._get_headers()
-        params = {"count": count}
-        
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(url, headers=headers, params=params)
-                
-                if response.status_code == 200:
-                    return response.json()
-                elif response.status_code == 404:
-                    return []  # No matches found
-                elif response.status_code == 403:
-                    raise ValueError("Invalid or expired API key")
-                elif response.status_code == 429:
-                    raise ValueError("Rate limit exceeded")
-                else:
-                    response.raise_for_status()
-                    
-        except httpx.TimeoutException:
-            raise ValueError("Request timed out")
-        except httpx.RequestError as e:
-            raise ValueError(f"Request failed: {str(e)}")
+        url = f"{base_url}/lol/match/v5/matches/by-puuid/{puuid}/ids?count={count}"
+        result = await self._make_rate_limited_request(url, "match-v5")
+        return result if result is not None else []
     
     async def get_match_details(self, match_id: str, region: str) -> Optional[Dict[str, Any]]:
         """
@@ -239,24 +219,33 @@ class RiotClient:
             raise ValueError(f"Unsupported region: {region}")
         
         url = f"{base_url}/lol/match/v5/matches/{match_id}"
-        headers = self._get_headers()
+        return await self._make_rate_limited_request(url, "match-v5")
+    
+    async def get_champion_masteries(self, summoner_id: str, region: str) -> List[Dict[str, Any]]:
+        """
+        Get champion mastery information for a summoner
+        """
+        if not self.api_key:
+            raise ValueError("RIOT_API_KEY is not configured")
         
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(url, headers=headers)
-                
-                if response.status_code == 200:
-                    return response.json()
-                elif response.status_code == 404:
-                    return None  # Match not found
-                elif response.status_code == 403:
-                    raise ValueError("Invalid or expired API key")
-                elif response.status_code == 429:
-                    raise ValueError("Rate limit exceeded")
-                else:
-                    response.raise_for_status()
-                    
-        except httpx.TimeoutException:
-            raise ValueError("Request timed out")
-        except httpx.RequestError as e:
-            raise ValueError(f"Request failed: {str(e)}") 
+        base_url = self._get_regional_base_url(region)
+        if not base_url:
+            raise ValueError(f"Unsupported region: {region}")
+        
+        url = f"{base_url}/lol/champion-mastery/v4/champion-masteries/by-summoner/{summoner_id}"
+        result = await self._make_rate_limited_request(url, "champion-mastery-v4")
+        return result if result is not None else []
+    
+    async def get_champion_mastery_by_champion(self, summoner_id: str, champion_id: int, region: str) -> Optional[Dict[str, Any]]:
+        """
+        Get champion mastery for a specific champion
+        """
+        if not self.api_key:
+            raise ValueError("RIOT_API_KEY is not configured")
+        
+        base_url = self._get_regional_base_url(region)
+        if not base_url:
+            raise ValueError(f"Unsupported region: {region}")
+        
+        url = f"{base_url}/lol/champion-mastery/v4/champion-masteries/by-summoner/{summoner_id}/by-champion/{champion_id}"
+        return await self._make_rate_limited_request(url, "champion-mastery-v4")

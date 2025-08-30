@@ -1,11 +1,12 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func, and_, extract
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 from collections import defaultdict, Counter
 import statistics
 
 from app.models.match import Match, MatchParticipant
+from .cache_service import cache_analytics, cache_match_data
 from app.models.summoner import Summoner
 
 
@@ -13,6 +14,7 @@ class AnalyticsService:
     """Service for calculating performance analytics from match data"""
     
     @staticmethod
+    @cache_analytics(ttl_seconds=600)  # Cache for 10 minutes
     async def get_player_overview_stats(
         db: AsyncSession, 
         puuid: str, 
@@ -106,6 +108,7 @@ class AnalyticsService:
         }
     
     @staticmethod
+    @cache_analytics(ttl_seconds=900)  # Cache for 15 minutes
     async def get_champion_performance(
         db: AsyncSession, 
         puuid: str, 
@@ -306,6 +309,7 @@ class AnalyticsService:
         }
     
     @staticmethod
+    @cache_analytics(ttl_seconds=1200)  # Cache for 20 minutes
     async def get_gpi_metrics(
         db: AsyncSession, 
         puuid: str, 
@@ -477,3 +481,447 @@ class AnalyticsService:
             })
         
         return performance_data
+    
+    @staticmethod
+    @cache_analytics(ttl_seconds=1800)  # Cache for 30 minutes
+    async def get_activity_heatmap(
+        db: AsyncSession, 
+        puuid: str, 
+        days: int = 30
+    ) -> Dict[str, Any]:
+        """
+        Get activity heatmap data showing gaming patterns by day of week and hour
+        
+        Args:
+            db: Database session
+            puuid: Player PUUID
+            days: Number of days to look back
+            
+        Returns:
+            Dictionary with heatmap data and activity statistics
+        """
+        date_threshold = datetime.now() - timedelta(days=days)
+        
+        # Get matches within timeframe
+        result = await db.execute(
+            select(Match, MatchParticipant)
+            .join(MatchParticipant, Match.match_id == MatchParticipant.match_id)
+            .where(
+                and_(
+                    MatchParticipant.puuid == puuid,
+                    Match.game_creation >= date_threshold
+                )
+            )
+            .order_by(Match.game_creation.desc())
+        )
+        
+        matches_data = result.all()
+        
+        if not matches_data:
+            return {
+                "heatmap_data": [],
+                "total_games": 0,
+                "total_hours_played": 0.0,
+                "peak_hour": None,
+                "peak_day": None,
+                "activity_pattern": "No data"
+            }
+        
+        # Initialize heatmap grid (7 days x 24 hours)
+        heatmap_grid = [[0 for _ in range(24)] for _ in range(7)]
+        
+        # Days of week mapping (0=Monday, 6=Sunday)
+        day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        
+        total_duration = 0
+        hour_totals = [0] * 24
+        day_totals = [0] * 7
+        
+        # Process each match
+        for match, participant in matches_data:
+            # Extract day of week and hour from game creation time
+            game_time = match.game_creation
+            day_of_week = game_time.weekday()  # 0=Monday, 6=Sunday
+            hour_of_day = game_time.hour
+            
+            # Increment counters
+            heatmap_grid[day_of_week][hour_of_day] += 1
+            hour_totals[hour_of_day] += 1
+            day_totals[day_of_week] += 1
+            total_duration += match.game_duration
+        
+        # Convert to heatmap format for frontend
+        heatmap_data = []
+        max_games = max(max(row) for row in heatmap_grid) if any(any(row) for row in heatmap_grid) else 1
+        
+        for day_idx, day_name in enumerate(day_names):
+            for hour in range(24):
+                games_count = heatmap_grid[day_idx][hour]
+                heatmap_data.append({
+                    "day": day_name,
+                    "hour": hour,
+                    "games": games_count,
+                    "intensity": games_count / max_games if max_games > 0 else 0  # Normalized 0-1
+                })
+        
+        # Find peak activity patterns
+        peak_hour = hour_totals.index(max(hour_totals)) if any(hour_totals) else None
+        peak_day_idx = day_totals.index(max(day_totals)) if any(day_totals) else None
+        peak_day = day_names[peak_day_idx] if peak_day_idx is not None else None
+        
+        # Determine activity pattern
+        activity_pattern = "Balanced"
+        if peak_hour is not None:
+            if 6 <= peak_hour <= 11:
+                activity_pattern = "Morning Gamer"
+            elif 12 <= peak_hour <= 17:
+                activity_pattern = "Afternoon Gamer"
+            elif 18 <= peak_hour <= 23:
+                activity_pattern = "Evening Gamer"
+            else:
+                activity_pattern = "Night Owl"
+        
+        # Calculate additional statistics
+        total_hours_played = total_duration / 3600  # Convert seconds to hours
+        
+        # Daily activity statistics
+        daily_stats = []
+        for day_idx, day_name in enumerate(day_names):
+            games_on_day = day_totals[day_idx]
+            daily_stats.append({
+                "day": day_name,
+                "games": games_on_day,
+                "percentage": (games_on_day / len(matches_data) * 100) if matches_data else 0
+            })
+        
+        # Hourly activity statistics
+        hourly_stats = []
+        for hour in range(24):
+            games_in_hour = hour_totals[hour]
+            hourly_stats.append({
+                "hour": hour,
+                "games": games_in_hour,
+                "percentage": (games_in_hour / len(matches_data) * 100) if matches_data else 0
+            })
+        
+        return {
+            "heatmap_data": heatmap_data,
+            "total_games": len(matches_data),
+            "total_hours_played": round(total_hours_played, 1),
+            "peak_hour": peak_hour,
+            "peak_day": peak_day,
+            "activity_pattern": activity_pattern,
+            "daily_stats": daily_stats,
+            "hourly_stats": hourly_stats,
+            "timeframe_days": days
+        }
+    
+    @staticmethod
+    @cache_analytics(ttl_seconds=900)  # Cache for 15 minutes
+    async def get_role_performance(
+        db: AsyncSession, 
+        puuid: str, 
+        days: int = 30
+    ) -> Dict[str, Any]:
+        """
+        Get performance statistics broken down by role/position
+        
+        Args:
+            db: Database session
+            puuid: Player PUUID
+            days: Number of days to analyze
+            
+        Returns:
+            Dictionary with role-based performance data
+        """
+        date_threshold = datetime.now() - timedelta(days=days)
+        
+        # Get matches within timeframe
+        result = await db.execute(
+            select(Match, MatchParticipant)
+            .join(MatchParticipant, Match.match_id == MatchParticipant.match_id)
+            .where(
+                and_(
+                    MatchParticipant.puuid == puuid,
+                    Match.game_creation >= date_threshold
+                )
+            )
+        )
+        
+        matches_data = result.all()
+        
+        if not matches_data:
+            return {
+                "role_stats": [],
+                "total_games": 0,
+                "most_played_role": None,
+                "best_performing_role": None,
+                "role_distribution": {}
+            }
+        
+        # Group by role/position
+        role_stats = defaultdict(list)
+        role_counts = defaultdict(int)
+        
+        for match, participant in matches_data:
+            # Use team_position as primary role, fallback to lane or "UNKNOWN"
+            role = participant.team_position or participant.lane or "UNKNOWN"
+            role_stats[role].append((match, participant))
+            role_counts[role] += 1
+        
+        # Calculate stats for each role
+        role_performance = []
+        for role, role_matches in role_stats.items():
+            total_games = len(role_matches)
+            wins = sum(1 for _, p in role_matches if p.win)
+            win_rate = (wins / total_games) * 100 if total_games > 0 else 0
+            
+            # Calculate averages
+            avg_kills = statistics.mean([p.kills for _, p in role_matches])
+            avg_deaths = statistics.mean([p.deaths for _, p in role_matches])
+            avg_assists = statistics.mean([p.assists for _, p in role_matches])
+            avg_kda = (avg_kills + avg_assists) / avg_deaths if avg_deaths > 0 else float('inf')
+            
+            # CS stats
+            cs_per_min_values = []
+            for match, participant in role_matches:
+                if match.game_duration > 0:
+                    cs_per_min = participant.total_minions_killed / (match.game_duration / 60)
+                    cs_per_min_values.append(cs_per_min)
+            avg_cs_per_min = statistics.mean(cs_per_min_values) if cs_per_min_values else 0.0
+            
+            # Other stats
+            avg_damage = statistics.mean([p.total_damage_dealt_to_champions for _, p in role_matches])
+            avg_vision = statistics.mean([p.vision_score for _, p in role_matches])
+            avg_gold = statistics.mean([p.gold_earned for _, p in role_matches])
+            
+            # Calculate performance score (simplified)
+            performance_score = (win_rate * 0.4) + (avg_kda * 10) + (avg_cs_per_min * 2) + (avg_vision * 0.1)
+            
+            role_performance.append({
+                "role": role,
+                "total_games": total_games,
+                "wins": wins,
+                "losses": total_games - wins,
+                "win_rate": round(win_rate, 1),
+                "avg_kills": round(avg_kills, 1),
+                "avg_deaths": round(avg_deaths, 1),
+                "avg_assists": round(avg_assists, 1),
+                "avg_kda": round(avg_kda, 2),
+                "avg_cs_per_min": round(avg_cs_per_min, 1),
+                "avg_damage_to_champions": round(avg_damage, 0),
+                "avg_vision_score": round(avg_vision, 1),
+                "avg_gold_earned": round(avg_gold, 0),
+                "performance_score": round(performance_score, 1),
+                "games_percentage": round((total_games / len(matches_data)) * 100, 1)
+            })
+        
+        # Sort by total games played
+        role_performance.sort(key=lambda x: x["total_games"], reverse=True)
+        
+        # Find most played and best performing roles
+        most_played_role = role_performance[0]["role"] if role_performance else None
+        best_performing_role = max(role_performance, key=lambda x: x["performance_score"])["role"] if role_performance else None
+        
+        # Create role distribution
+        role_distribution = {role: count for role, count in role_counts.items()}
+        
+        return {
+            "role_stats": role_performance,
+            "total_games": len(matches_data),
+            "most_played_role": most_played_role,
+            "best_performing_role": best_performing_role,
+            "role_distribution": role_distribution,
+            "timeframe_days": days
+        }
+    
+    @staticmethod
+    async def get_role_benchmarks(
+        db: AsyncSession, 
+        puuid: str, 
+        role: str, 
+        days: int = 30
+    ) -> Dict[str, Any]:
+        """
+        Get detailed benchmarks and recommendations for a specific role
+        
+        Args:
+            db: Database session
+            puuid: Player PUUID
+            role: Role to analyze (TOP, JUNGLE, MIDDLE, BOTTOM, UTILITY)
+            days: Number of days to analyze
+            
+        Returns:
+            Dictionary with role-specific benchmarks and insights
+        """
+        date_threshold = datetime.now() - timedelta(days=days)
+        
+        # Get matches for the specific role
+        result = await db.execute(
+            select(Match, MatchParticipant)
+            .join(MatchParticipant, Match.match_id == MatchParticipant.match_id)
+            .where(
+                and_(
+                    MatchParticipant.puuid == puuid,
+                    MatchParticipant.team_position == role,
+                    Match.game_creation >= date_threshold
+                )
+            )
+        )
+        
+        matches_data = result.all()
+        
+        if not matches_data:
+            return {
+                "role": role,
+                "total_games": 0,
+                "benchmarks": {},
+                "insights": [],
+                "recommendations": []
+            }
+        
+        # Calculate role-specific metrics
+        total_games = len(matches_data)
+        wins = sum(1 for _, p in matches_data if p.win)
+        win_rate = (wins / total_games) * 100
+        
+        # KDA analysis
+        kills = [p.kills for _, p in matches_data]
+        deaths = [p.deaths for _, p in matches_data]
+        assists = [p.assists for _, p in matches_data]
+        
+        avg_kills = statistics.mean(kills)
+        avg_deaths = statistics.mean(deaths)
+        avg_assists = statistics.mean(assists)
+        
+        # CS analysis (more important for certain roles)
+        cs_values = []
+        cs_per_min_values = []
+        for match, participant in matches_data:
+            cs_values.append(participant.total_minions_killed)
+            if match.game_duration > 0:
+                cs_per_min = participant.total_minions_killed / (match.game_duration / 60)
+                cs_per_min_values.append(cs_per_min)
+        
+        avg_cs = statistics.mean(cs_values) if cs_values else 0
+        avg_cs_per_min = statistics.mean(cs_per_min_values) if cs_per_min_values else 0
+        
+        # Damage and gold
+        damage_values = [p.total_damage_dealt_to_champions for _, p in matches_data]
+        gold_values = [p.gold_earned for _, p in matches_data]
+        vision_values = [p.vision_score for _, p in matches_data]
+        
+        avg_damage = statistics.mean(damage_values)
+        avg_gold = statistics.mean(gold_values)
+        avg_vision = statistics.mean(vision_values)
+        
+        # Role-specific benchmarks (these would ideally come from a larger dataset)
+        benchmarks = AnalyticsService._get_role_benchmarks(role)
+        
+        # Generate insights and recommendations
+        insights = []
+        recommendations = []
+        
+        # Win rate analysis
+        if win_rate >= 60:
+            insights.append(f"Excellent {role} win rate ({win_rate:.1f}%)")
+        elif win_rate >= 50:
+            insights.append(f"Good {role} win rate ({win_rate:.1f}%)")
+        else:
+            insights.append(f"Below average {role} win rate ({win_rate:.1f}%)")
+            recommendations.append(f"Focus on improving {role} fundamentals")
+        
+        # CS analysis (important for laners)
+        if role in ["TOP", "MIDDLE", "BOTTOM"]:
+            if avg_cs_per_min >= benchmarks["excellent_cs"]:
+                insights.append(f"Excellent CS/min ({avg_cs_per_min:.1f})")
+            elif avg_cs_per_min >= benchmarks["good_cs"]:
+                insights.append(f"Good CS/min ({avg_cs_per_min:.1f})")
+            else:
+                insights.append(f"Below average CS/min ({avg_cs_per_min:.1f})")
+                recommendations.append("Focus on improving last-hitting and farming efficiency")
+        
+        # Vision analysis (important for supports and junglers)
+        if role in ["UTILITY", "JUNGLE"]:
+            if avg_vision >= benchmarks["excellent_vision"]:
+                insights.append(f"Excellent vision control ({avg_vision:.1f})")
+            elif avg_vision >= benchmarks["good_vision"]:
+                insights.append(f"Good vision control ({avg_vision:.1f})")
+            else:
+                insights.append(f"Below average vision control ({avg_vision:.1f})")
+                recommendations.append("Focus on ward placement and vision control")
+        
+        # KDA analysis
+        avg_kda = (avg_kills + avg_assists) / avg_deaths if avg_deaths > 0 else float('inf')
+        if avg_kda >= 3.0:
+            insights.append(f"Excellent KDA ({avg_kda:.2f})")
+        elif avg_kda >= 2.0:
+            insights.append(f"Good KDA ({avg_kda:.2f})")
+        else:
+            insights.append(f"Below average KDA ({avg_kda:.2f})")
+            recommendations.append("Focus on positioning and reducing deaths")
+        
+        return {
+            "role": role,
+            "total_games": total_games,
+            "win_rate": round(win_rate, 1),
+            "benchmarks": {
+                "avg_kills": round(avg_kills, 1),
+                "avg_deaths": round(avg_deaths, 1),
+                "avg_assists": round(avg_assists, 1),
+                "avg_kda": round(avg_kda, 2),
+                "avg_cs": round(avg_cs, 0),
+                "avg_cs_per_min": round(avg_cs_per_min, 1),
+                "avg_damage": round(avg_damage, 0),
+                "avg_gold": round(avg_gold, 0),
+                "avg_vision": round(avg_vision, 1)
+            },
+            "insights": insights,
+            "recommendations": recommendations,
+            "timeframe_days": days
+        }
+    
+    @staticmethod
+    def _get_role_benchmarks(role: str) -> Dict[str, float]:
+        """Get benchmark values for role-based performance evaluation"""
+        # These are simplified benchmarks - in production, these would come from analyzing
+        # large datasets of players at different skill levels
+        benchmarks = {
+            "TOP": {
+                "excellent_cs": 7.5,
+                "good_cs": 6.5,
+                "excellent_vision": 20.0,
+                "good_vision": 15.0
+            },
+            "JUNGLE": {
+                "excellent_cs": 4.5,
+                "good_cs": 3.5,
+                "excellent_vision": 35.0,
+                "good_vision": 25.0
+            },
+            "MIDDLE": {
+                "excellent_cs": 7.0,
+                "good_cs": 6.0,
+                "excellent_vision": 20.0,
+                "good_vision": 15.0
+            },
+            "BOTTOM": {
+                "excellent_cs": 8.0,
+                "good_cs": 7.0,
+                "excellent_vision": 15.0,
+                "good_vision": 10.0
+            },
+            "UTILITY": {
+                "excellent_cs": 2.0,
+                "good_cs": 1.5,
+                "excellent_vision": 50.0,
+                "good_vision": 35.0
+            }
+        }
+        
+        return benchmarks.get(role, {
+            "excellent_cs": 6.0,
+            "good_cs": 5.0,
+            "excellent_vision": 25.0,
+            "good_vision": 20.0
+        })

@@ -7,6 +7,13 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { MatchHistory } from "./MatchHistory"
 import { Analytics } from "./Analytics"
+import { ChampionPool } from "./ChampionPool"
+import { ActivityHeatmap } from "./ActivityHeatmap"
+import { OverviewStats } from "./OverviewStats"
+import { RecentMatches } from "./RecentMatches"
+import { TopChampions } from "./TopChampions"
+import { PrimaryRole } from "./PrimaryRole"
+import ErrorBoundary from "./ErrorBoundary"
 
 interface SummonerResponse {
   puuid: string
@@ -333,28 +340,14 @@ export function Dashboard() {
                         <CardDescription className="text-slate-300">Last 20 games</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-4 gap-4 mb-6">
-                          <div className="text-center">
-                            <div className="text-2xl font-bold text-purple-400">15W</div>
-                            <div className="text-sm text-slate-400">Wins</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-2xl font-bold text-red-400">5L</div>
-                            <div className="text-sm text-slate-400">Losses</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-2xl font-bold text-blue-400">75%</div>
-                            <div className="text-sm text-slate-400">Win Rate</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-2xl font-bold text-green-400">2.4</div>
-                            <div className="text-sm text-slate-400">Avg KDA</div>
-                          </div>
-                        </div>
-                        {/* Activity Heatmap Placeholder */}
-                        <div className="h-24 bg-slate-700/30 rounded-lg flex items-center justify-center border border-slate-600/30">
-                          <span className="text-slate-400 text-sm">Activity Heatmap (Coming Soon)</span>
-                        </div>
+                        {/* Real Overview Stats */}
+                        <ErrorBoundary>
+                          <OverviewStats puuid={summonerData.puuid} days={20} />
+                        </ErrorBoundary>
+                        {/* Activity Heatmap */}
+                        <ErrorBoundary>
+                          <ActivityHeatmap puuid={summonerData.puuid} />
+                        </ErrorBoundary>
                       </CardContent>
                     </Card>
 
@@ -364,25 +357,9 @@ export function Dashboard() {
                         <CardTitle className="text-white">Recent Matches</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="space-y-3">
-                          {[1,2,3].map((i) => (
-                            <div key={i} className="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg border border-slate-600/30">
-                              <div className="flex items-center space-x-3">
-                                <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
-                                  <span className="text-white font-bold">🏆</span>
-                                </div>
-                                <div>
-                                  <div className="text-white font-medium">Ranked Solo</div>
-                                  <div className="text-slate-400 text-sm">Victory • 23m 45s</div>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="text-purple-400 font-medium">12/3/8</div>
-                                <div className="text-slate-400 text-sm">4.0 KDA</div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                        <ErrorBoundary>
+                          <RecentMatches puuid={summonerData.puuid} limit={3} />
+                        </ErrorBoundary>
                       </CardContent>
                     </Card>
                   </div>
@@ -394,11 +371,9 @@ export function Dashboard() {
                         <CardTitle className="text-white">Primary Role</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="text-center space-y-2">
-                          <div className="text-4xl">🌿</div>
-                          <div className="text-xl font-bold text-purple-400">Jungle</div>
-                          <div className="text-slate-400 text-sm">22 games • 59.1% WR</div>
-                        </div>
+                        <ErrorBoundary>
+                          <PrimaryRole puuid={summonerData.puuid} days={30} />
+                        </ErrorBoundary>
                       </CardContent>
                     </Card>
 
@@ -407,22 +382,9 @@ export function Dashboard() {
                         <CardTitle className="text-white">Top Champions</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="space-y-3">
-                          {["Amumu", "Fiddlesticks", "Jarvan IV"].map((champ, i) => (
-                            <div key={champ} className="flex items-center justify-between">
-                              <div className="flex items-center space-x-2">
-                                <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
-                                  <span className="text-white text-xs">{i+1}</span>
-                                </div>
-                                <span className="text-white">{champ}</span>
-                              </div>
-                              <div className="text-right">
-                                <div className="text-purple-400 text-sm">65% WR</div>
-                                <div className="text-slate-400 text-xs">8 games</div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                        <ErrorBoundary>
+                          <TopChampions puuid={summonerData.puuid} limit={3} />
+                        </ErrorBoundary>
                       </CardContent>
                     </Card>
                   </div>
@@ -430,14 +392,13 @@ export function Dashboard() {
               )}
 
               {activeTab === "champions" && (
-                <div className="text-center py-16">
-                  <div className="text-6xl mb-4">🏆</div>
-                  <h3 className="text-2xl font-bold text-white mb-2">Champion Pool Analysis</h3>
-                  <p className="text-slate-400 mb-6">Detailed champion statistics and performance insights</p>
-                  <Badge variant="outline" className="border-purple-400/30 text-purple-300">
-                    Coming Soon
-                  </Badge>
-                </div>
+                <ChampionPool 
+                  puuid={summonerData.puuid} 
+                  summonerName={summonerData.game_name && summonerData.tag_line 
+                    ? `${summonerData.game_name}#${summonerData.tag_line}`
+                    : summonerData.name || "Unknown Summoner"
+                  }
+                />
               )}
 
               {activeTab === "matches" && (

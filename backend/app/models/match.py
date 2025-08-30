@@ -86,6 +86,12 @@ class MatchParticipant(Base):
     summoner_spell_1 = Column(Integer, nullable=False, doc="First summoner spell ID")
     summoner_spell_2 = Column(Integer, nullable=False, doc="Second summoner spell ID")
     
+    # Position/Role data
+    team_position = Column(String, nullable=True, index=True, doc="Team position (TOP, JUNGLE, MIDDLE, BOTTOM, UTILITY)")
+    individual_position = Column(String, nullable=True, doc="Individual position (may differ from team position)")
+    role = Column(String, nullable=True, doc="Role (DUO_CARRY, DUO_SUPPORT, etc.)")
+    lane = Column(String, nullable=True, doc="Lane (TOP, JUNGLE, MID, BOT)")
+    
     # KDA and combat stats
     kills = Column(Integer, nullable=False, default=0, doc="Kills")
     deaths = Column(Integer, nullable=False, default=0, doc="Deaths") 

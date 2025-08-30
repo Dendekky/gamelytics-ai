@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
+import { RolePerformance } from "./RolePerformance"
 import { Button } from "@/components/ui/button"
 import { 
   BarChart, 
@@ -366,6 +367,9 @@ export function Analytics({ puuid, summonerName }: AnalyticsProps) {
           </CardContent>
         </Card>
       )}
+
+      {/* Role Performance Analysis */}
+      <RolePerformance puuid={puuid} days={days} />
     </div>
   )
 }
