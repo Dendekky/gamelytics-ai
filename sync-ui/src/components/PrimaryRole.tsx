@@ -32,8 +32,16 @@ export function PrimaryRole({ puuid, days = 30 }: PrimaryRoleProps) {
       }
       const data = await response.json()
       console.log('Role performance data:', data)
-      // The API returns { role_stats: [...], ... } structure
-      return Array.isArray(data) ? data : (data.role_stats || [])
+      
+      // Handle different response formats
+      if (Array.isArray(data)) {
+        return data
+      } else if (data && data.role_stats && Array.isArray(data.role_stats)) {
+        return data.role_stats
+      } else {
+        console.warn('Unexpected role performance data format:', data)
+        return []
+      }
     },
     enabled: !!puuid,
     retry: 1, // Only retry once to prevent infinite loading
@@ -43,7 +51,7 @@ export function PrimaryRole({ puuid, days = 30 }: PrimaryRoleProps) {
     return <PrimaryRoleSkeleton />
   }
 
-  if (error || !roleData || roleData.length === 0) {
+  if (error || !roleData || !Array.isArray(roleData) || roleData.length === 0) {
     return (
       <div className="text-center space-y-2">
         <div className="text-4xl">⚖️</div>
@@ -54,11 +62,9 @@ export function PrimaryRole({ puuid, days = 30 }: PrimaryRoleProps) {
   }
 
   // Find the role with the most games
-  const primaryRole = Array.isArray(roleData) && roleData.length > 0 
-    ? roleData.reduce((prev, current) => 
-        (current.games > prev.games) ? current : prev
-      )
-    : null
+  const primaryRole = roleData.reduce((prev, current) => 
+    (current.games > prev.games) ? current : prev
+  )
 
   if (!primaryRole) {
     return (

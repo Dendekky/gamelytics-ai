@@ -70,8 +70,10 @@ interface GPIMetrics {
 export function Analytics({ puuid, summonerName }: AnalyticsProps) {
   const days = 30
 
+  console.log('Analytics component rendering with puuid:', puuid, 'summonerName:', summonerName)
+
   // Fetch overview statistics
-  const { data: overviewStats, isLoading: overviewLoading } = useQuery({
+  const { data: overviewStats, isLoading: overviewLoading, error: overviewError } = useQuery({
     queryKey: ['analytics-overview', puuid, days],
     queryFn: async (): Promise<PlayerOverviewStats> => {
       const response = await fetch(
@@ -86,7 +88,7 @@ export function Analytics({ puuid, summonerName }: AnalyticsProps) {
   })
 
   // Fetch champion performance
-  const { data: championPerformance, isLoading: championLoading } = useQuery({
+  const { data: championPerformance, isLoading: championLoading, error: championError } = useQuery({
     queryKey: ['analytics-champions', puuid, days],
     queryFn: async (): Promise<ChampionPerformance[]> => {
       const response = await fetch(
@@ -101,7 +103,7 @@ export function Analytics({ puuid, summonerName }: AnalyticsProps) {
   })
 
   // Fetch GPI metrics
-  const { data: gpiMetrics, isLoading: gpiLoading } = useQuery({
+  const { data: gpiMetrics, isLoading: gpiLoading, error: gpiError } = useQuery({
     queryKey: ['analytics-gpi', puuid, days],
     queryFn: async (): Promise<GPIMetrics> => {
       const response = await fetch(
@@ -114,6 +116,11 @@ export function Analytics({ puuid, summonerName }: AnalyticsProps) {
     },
     enabled: !!puuid,
   })
+
+  // Log any errors
+  if (overviewError) console.error('Overview stats error:', overviewError)
+  if (championError) console.error('Champion performance error:', championError)
+  if (gpiError) console.error('GPI metrics error:', gpiError)
 
   // Prepare radar chart data
   const radarData = gpiMetrics ? [
@@ -132,6 +139,35 @@ export function Analytics({ puuid, summonerName }: AnalyticsProps) {
     games: champ.total_games,
     kda: champ.avg_kda
   })) || []
+
+  // Show error state if any query failed
+  if (overviewError || championError || gpiError) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-white">Performance Analytics</h2>
+            <p className="text-slate-300">
+              {summonerName && `${summonerName} • `}
+              Last {days} days
+            </p>
+          </div>
+        </div>
+        
+        <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
+          <CardContent className="p-6">
+            <div className="text-center py-8">
+              <div className="text-4xl mb-2">⚠️</div>
+              <p className="text-slate-400">Unable to load analytics data</p>
+              <p className="text-slate-500 text-sm mt-2">
+                {overviewError?.message || championError?.message || gpiError?.message || 'An error occurred while fetching data'}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   if (overviewLoading || championLoading || gpiLoading) {
     return (

@@ -4,6 +4,7 @@ import { ChampionMasterySync } from "./ChampionMasterySync"
 
 interface TopChampionsProps {
   puuid: string
+  region: string
   limit?: number
 }
 
@@ -23,7 +24,7 @@ interface ChampionMasteryEnhancedResponse {
   total_count: number
 }
 
-export function TopChampions({ puuid, limit = 3 }: TopChampionsProps) {
+export function TopChampions({ puuid, region, limit = 3 }: TopChampionsProps) {
   const queryClient = useQueryClient()
   const { data: championMasteries, isLoading, error } = useQuery({
     queryKey: ['top-champions', puuid, limit],
@@ -84,7 +85,7 @@ export function TopChampions({ puuid, limit = 3 }: TopChampionsProps) {
           </p>
           <ChampionMasterySync 
             puuid={puuid} 
-            region="na1" 
+            region={region} 
             onSyncComplete={handleSyncComplete}
           />
         </div>

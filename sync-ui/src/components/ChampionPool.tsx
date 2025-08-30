@@ -19,10 +19,11 @@ import type { ChampionMasteryResponse, ChampionMasteryWithPerformance } from "..
 
 interface ChampionPoolProps {
   puuid: string
+  region: string
   summonerName?: string
 }
 
-export function ChampionPool({ puuid, summonerName }: ChampionPoolProps) {
+export function ChampionPool({ puuid, region, summonerName }: ChampionPoolProps) {
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Fetch enhanced champion mastery data
@@ -45,7 +46,7 @@ export function ChampionPool({ puuid, summonerName }: ChampionPoolProps) {
     setIsRefreshing(true)
     try {
       const response = await fetch(
-        `http://localhost:8000/api/v1/champion-mastery/${puuid}/sync?region=na1`,
+        `http://localhost:8000/api/v1/champion-mastery/${puuid}/sync?region=${region}`,
         { method: 'POST' }
       )
       

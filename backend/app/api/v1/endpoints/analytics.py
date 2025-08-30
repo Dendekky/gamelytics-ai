@@ -170,6 +170,18 @@ async def clear_cache():
         raise HTTPException(status_code=500, detail=f"Failed to clear cache: {str(e)}")
 
 
+@router.post("/cache/clear-analytics")
+async def clear_analytics_cache():
+    """Clear only analytics cache entries"""
+    try:
+        # For now, clear all cache since we don't have pattern-based deletion
+        # In production with Redis, you'd use pattern matching
+        await cache.clear()
+        return {"message": "Analytics cache cleared successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to clear analytics cache: {str(e)}")
+
+
 @router.post("/cache/cleanup")
 async def cleanup_cache():
     """Manually trigger cache cleanup"""

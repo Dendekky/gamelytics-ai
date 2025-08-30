@@ -22,7 +22,7 @@ class SummonerResponse(BaseModel):
     tag_line: Optional[str] = Field(None, description="Riot ID tag line")
     level: int = Field(..., description="Summoner level")
     revision_date: int = Field(..., description="Revision date")
-    # region: str = Field(..., description="League region")
+    region: str = Field(..., description="League region")
     
     class Config:
         from_attributes = True 

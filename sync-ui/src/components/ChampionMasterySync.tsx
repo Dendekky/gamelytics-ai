@@ -3,11 +3,11 @@ import { Button } from "./ui/button"
 
 interface ChampionMasterySyncProps {
   puuid: string
-  region?: string
+  region: string
   onSyncComplete?: () => void
 }
 
-export function ChampionMasterySync({ puuid, region = "na1", onSyncComplete }: ChampionMasterySyncProps) {
+export function ChampionMasterySync({ puuid, region, onSyncComplete }: ChampionMasterySyncProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)

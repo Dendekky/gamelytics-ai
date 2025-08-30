@@ -25,11 +25,30 @@ export function RolePerformance({ puuid, days = 30 }: RolePerformanceProps) {
         `http://localhost:8000/api/v1/analytics/roles/${puuid}?days=${days}`
       )
       if (!response.ok) {
-        throw new Error('Failed to fetch role performance')
+        console.error('Role performance API error:', response.status, response.statusText)
+        throw new Error(`Failed to fetch role performance: ${response.status} ${response.statusText}`)
       }
-      return response.json()
+      const data = await response.json()
+      console.log('Role performance data received:', data)
+      
+      // Validate the response structure
+      if (!data || typeof data !== 'object') {
+        console.error('Invalid role performance response:', data)
+        throw new Error('Invalid response format from server')
+      }
+      
+      if (!data.role_stats || !Array.isArray(data.role_stats)) {
+        console.error('Missing or invalid role_stats in response:', data)
+        throw new Error('Missing role statistics in response')
+      }
+      
+      return data
     },
     enabled: !!puuid,
+    retry: (failureCount, error) => {
+      console.log(`Role performance query retry attempt ${failureCount}:`, error)
+      return failureCount < 2 // Only retry twice
+    },
   })
 
   // Fetch detailed role benchmarks for selected role
@@ -58,6 +77,47 @@ export function RolePerformance({ puuid, days = 30 }: RolePerformanceProps) {
           <div className="text-center py-8">
             <div className="text-4xl mb-2">⚔️</div>
             <p className="text-slate-400">Unable to load role performance data</p>
+            {error && (
+              <div className="mt-4 p-3 bg-red-900/20 border border-red-500/30 rounded text-sm">
+                <p className="text-red-300 font-medium">Error Details:</p>
+                <p className="text-red-400 text-xs mt-1">{error.message}</p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-2 border-red-500/30 text-red-300 hover:bg-red-500/20"
+                  onClick={() => {
+                    // Clear cache and refetch
+                    window.location.reload()
+                  }}
+                >
+                  Retry & Clear Cache
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // Additional safety check for role_stats
+  if (!roleData.role_stats || !Array.isArray(roleData.role_stats)) {
+    console.error('roleData.role_stats is undefined or not an array:', roleData)
+    return (
+      <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
+        <CardContent className="p-6">
+          <div className="text-center py-8">
+            <div className="text-4xl mb-2">⚠️</div>
+            <p className="text-slate-400">Invalid role performance data format</p>
+            <p className="text-slate-500 text-xs mt-2">This might be a caching issue. Try refreshing the page.</p>
+            <Button
+              size="sm"
+              variant="outline"
+              className="mt-2 border-slate-600 text-slate-400"
+              onClick={() => window.location.reload()}
+            >
+              Refresh Page
+            </Button>
           </div>
         </CardContent>
       </Card>

@@ -10,10 +10,11 @@ import { type PlayerMatchPerformance } from "@/types/match"
 
 interface MatchHistoryProps {
   puuid: string
+  region: string
   summonerName?: string
 }
 
-export function MatchHistory({ puuid, summonerName }: MatchHistoryProps) {
+export function MatchHistory({ puuid, region, summonerName }: MatchHistoryProps) {
   const [limit, setLimit] = useState(20)
   const [fetchingNew, setFetchingNew] = useState(false)
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null)
@@ -39,7 +40,7 @@ export function MatchHistory({ puuid, summonerName }: MatchHistoryProps) {
     try {
       // First, trigger fetching new matches from Riot API
       const response = await fetch(
-        `http://localhost:8000/api/v1/matches/${puuid}?fetch_new=true&limit=${Math.max(limit, 20)}&region=na1`,
+        `http://localhost:8000/api/v1/matches/${puuid}?fetch_new=true&limit=${Math.max(limit, 20)}&region=${region}`,
         { method: 'GET' }
       )
       

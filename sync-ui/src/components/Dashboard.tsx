@@ -383,7 +383,7 @@ export function Dashboard() {
                       </CardHeader>
                       <CardContent>
                         <ErrorBoundary>
-                          <TopChampions puuid={summonerData.puuid} limit={3} />
+                          <TopChampions puuid={summonerData.puuid} region={summonerData.region} limit={3} />
                         </ErrorBoundary>
                       </CardContent>
                     </Card>
@@ -394,6 +394,7 @@ export function Dashboard() {
               {activeTab === "champions" && (
                 <ChampionPool 
                   puuid={summonerData.puuid} 
+                  region={summonerData.region}
                   summonerName={summonerData.game_name && summonerData.tag_line 
                     ? `${summonerData.game_name}#${summonerData.tag_line}`
                     : summonerData.name || "Unknown Summoner"
@@ -404,6 +405,7 @@ export function Dashboard() {
               {activeTab === "matches" && (
                 <MatchHistory 
                   puuid={summonerData.puuid} 
+                  region={summonerData.region}
                   summonerName={summonerData.game_name && summonerData.tag_line 
                     ? `${summonerData.game_name}#${summonerData.tag_line}`
                     : summonerData.name || "Unknown Summoner"
@@ -412,13 +414,15 @@ export function Dashboard() {
               )}
 
               {activeTab === "analytics" && (
-                <Analytics 
-                  puuid={summonerData.puuid} 
-                  summonerName={summonerData.game_name && summonerData.tag_line 
-                    ? `${summonerData.game_name}#${summonerData.tag_line}`
-                    : summonerData.name || "Unknown Summoner"
-                  }
-                />
+                <ErrorBoundary>
+                  <Analytics 
+                    puuid={summonerData.puuid} 
+                    summonerName={summonerData.game_name && summonerData.tag_line 
+                      ? `${summonerData.game_name}#${summonerData.tag_line}`
+                      : summonerData.name || "Unknown Summoner"
+                    }
+                  />
+                </ErrorBoundary>
               )}
             </div>
           </div>
