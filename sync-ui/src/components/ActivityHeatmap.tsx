@@ -156,7 +156,7 @@ export function ActivityHeatmap({ puuid, days = 30 }: ActivityHeatmapProps) {
           </div>
         </div>
 
-        {/* Heatmap Grid - Compact Version */}
+        {/* Heatmap Grid - Horizontal Layout */}
         <div className="space-y-2">
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-sm font-medium text-white">Gaming Activity by Day & Hour</h4>
@@ -172,43 +172,51 @@ export function ActivityHeatmap({ puuid, days = 30 }: ActivityHeatmapProps) {
             </div>
           </div>
 
-          {/* Compact Hour labels - only show key hours */}
+          {/* Horizontal Layout: Days as columns, Hours as rows */}
           <div className="flex">
-            <div className="w-16"></div> {/* Space for day labels */}
-            <div className="flex-1 grid grid-cols-24 gap-px">
+            {/* Hour labels on the left */}
+            <div className="w-12 flex flex-col">
+              <div className="h-6"></div> {/* Space for day labels */}
               {hours.map(hour => (
-                <div key={hour} className="text-xs text-slate-400 text-center">
+                <div key={hour} className="h-3 text-xs text-slate-400 text-right pr-2 flex items-center justify-end">
                   {hour % 6 === 0 ? hour.toString() : ""}
                 </div>
               ))}
             </div>
-          </div>
 
-          {/* Compact Heatmap rows */}
-          <div className="space-y-px">
-            {dayNames.map(day => (
-              <div key={day} className="flex items-center">
-                <div className="w-16 text-xs text-slate-400 text-right pr-2">
-                  {day.slice(0, 3)}
-                </div>
-                <div className="flex-1 grid grid-cols-24 gap-px">
-                  {hours.map(hour => {
-                    const intensity = heatmapGrid[day][hour]
-                    const gamesCount = activityData.heatmap_data.find(
-                      p => p.day === day && p.hour === hour
-                    )?.games || 0
-                    
-                    return (
-                      <div
-                        key={`${day}-${hour}`}
-                        className={`w-3 h-3 ${getIntensityColor(intensity)} rounded-sm border border-slate-700/20 hover:border-purple-400/50 transition-colors cursor-pointer`}
-                        title={`${day} ${formatHour(hour)}: ${gamesCount} game(s)`}
-                      />
-                    )
-                  })}
-                </div>
+            {/* Heatmap grid */}
+            <div className="flex-1">
+              {/* Day labels at the top */}
+              <div className="grid grid-cols-7 gap-px mb-1">
+                {dayNames.map(day => (
+                  <div key={day} className="text-xs text-slate-400 text-center">
+                    {day.slice(0, 3)}
+                  </div>
+                ))}
               </div>
-            ))}
+
+              {/* Heatmap cells */}
+              <div className="grid grid-cols-7 gap-px">
+                {dayNames.map(day => (
+                  <div key={day} className="flex flex-col gap-px">
+                    {hours.map(hour => {
+                      const intensity = heatmapGrid[day][hour]
+                      const gamesCount = activityData.heatmap_data.find(
+                        p => p.day === day && p.hour === hour
+                      )?.games || 0
+                      
+                      return (
+                        <div
+                          key={`${day}-${hour}`}
+                          className={`w-full h-3 ${getIntensityColor(intensity)} rounded-sm border border-slate-700/20 hover:border-purple-400/50 transition-colors cursor-pointer`}
+                          title={`${day} ${formatHour(hour)}: ${gamesCount} game(s)`}
+                        />
+                      )
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -255,17 +263,35 @@ function ActivityHeatmapSkeleton() {
         {/* Heatmap skeleton */}
         <div className="space-y-2">
           <Skeleton className="h-4 w-60 bg-slate-700" />
-          <div className="space-y-1">
-            {[...Array(7)].map((_, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <Skeleton className="w-16 h-4 bg-slate-700" />
-                <div className="flex-1 grid grid-cols-24 gap-0.5">
-                  {[...Array(24)].map((_, j) => (
-                    <Skeleton key={j} className="aspect-square bg-slate-700" />
-                  ))}
-                </div>
+          <div className="flex">
+            {/* Hour labels skeleton */}
+            <div className="w-12 flex flex-col">
+              <div className="h-6"></div>
+              {[...Array(24)].map((_, i) => (
+                <Skeleton key={i} className="h-3 w-8 bg-slate-700" />
+              ))}
+            </div>
+            
+            {/* Heatmap grid skeleton */}
+            <div className="flex-1">
+              {/* Day labels skeleton */}
+              <div className="grid grid-cols-7 gap-px mb-1">
+                {[...Array(7)].map((_, i) => (
+                  <Skeleton key={i} className="h-6 bg-slate-700" />
+                ))}
               </div>
-            ))}
+              
+              {/* Heatmap cells skeleton */}
+              <div className="grid grid-cols-7 gap-px">
+                {[...Array(7)].map((_, i) => (
+                  <div key={i} className="flex flex-col gap-px">
+                    {[...Array(24)].map((_, j) => (
+                      <Skeleton key={j} className="w-full h-3 bg-slate-700" />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </CardContent>
