@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,103 +13,34 @@ import { RecentMatches } from "./RecentMatches"
 import { TopChampions } from "./TopChampions"
 import { PrimaryRole } from "./PrimaryRole"
 import ErrorBoundary from "./ErrorBoundary"
-
-interface SummonerResponse {
-  puuid: string
-  summoner_id: string
-  account_id: string
-  name?: string // Optional, may be null due to deprecation
-  game_name?: string
-  tag_line?: string
-  level: number
-  region: string
-}
+import { useAppStore } from "../stores/appStore"
+import { useApiStore } from "../stores/apiStore"
 
 export function Dashboard() {
-  const [riotId, setRiotId] = useState("") // For single input like "GameName#1234"
-  const [gameName, setGameName] = useState("") // For separate inputs
-  const [tagLine, setTagLine] = useState("")
-  const [region, setRegion] = useState("na1")
-  const [inputMode, setInputMode] = useState<"single" | "separate">("single")
-  const [isLoading, setIsLoading] = useState(false)
-  const [summonerData, setSummonerData] = useState<SummonerResponse | null>(null)
-  const [error, setError] = useState("")
-  const [activeTab, setActiveTab] = useState<"overview" | "champions" | "matches" | "analytics">("overview")
+  // Zustand store hooks
+  const {
+    summonerData,
+    isLoading,
+    error,
+    activeTab,
+    inputMode,
+    riotId,
+    gameName,
+    tagLine,
+    region,
+    refreshTrigger,
+    setActiveTab,
+    setInputMode,
+    setRiotId,
+    setGameName,
+    setTagLine,
+    setRegion,
+    disconnect
+  } = useAppStore()
 
-  const parseRiotId = (input: string): { gameName: string; tagLine: string } | null => {
-    // Parse "GameName#1234" format
-    const match = input.match(/^(.+)#(.+)$/)
-    if (match && match[1] && match[2]) {
-      return {
-        gameName: match[1].trim(),
-        tagLine: match[2].trim()
-      }
-    }
-    return {
-      gameName: input,
-      tagLine: ""
-    }
-  }
+  const { connectAccount, syncMatches } = useApiStore()
 
-  const handleConnectAccount = async () => {
-    let finalGameName = ""
-    let finalTagLine = ""
 
-    if (inputMode === "single") {
-      if (!riotId.trim()) {
-        setError("Please enter a Riot ID (GameName#1234)")
-        return
-      }
-
-      const parsed = parseRiotId(riotId.trim())
-      if (!parsed) {
-        setError("Invalid Riot ID format. Please use: GameName#1234")
-        return
-      }
-
-      finalGameName = parsed.gameName
-      finalTagLine = parsed.tagLine
-    } else {
-      if (!gameName.trim() || !tagLine.trim()) {
-        setError("Please enter both game name and tag line")
-        return
-      }
-
-      finalGameName = gameName.trim()
-      finalTagLine = tagLine.trim()
-    }
-
-    setIsLoading(true)
-    setError("")
-
-    try {
-      const response = await fetch("http://localhost:8000/api/v1/summoners/lookup-by-riot-id", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          game_name: finalGameName,
-          tag_line: finalTagLine,
-          region: region,
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || "Failed to connect account")
-      }
-
-      const data: SummonerResponse = await response.json()
-      setSummonerData(data)
-      setError("")
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to connect account")
-      setSummonerData(null)
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -250,7 +180,7 @@ export function Dashboard() {
                 
                 <Button 
                   className="w-full bg-purple-600 hover:bg-purple-700" 
-                  onClick={handleConnectAccount}
+                  onClick={connectAccount}
                   disabled={isLoading}
                 >
                   {isLoading ? "Connecting..." : "Connect Account"}
@@ -292,13 +222,7 @@ export function Dashboard() {
               </div>
               <Button
                 variant="outline"
-                onClick={() => {
-                  setSummonerData(null)
-                  setError("")
-                  setRiotId("")
-                  setGameName("")
-                  setTagLine("")
-                }}
+                onClick={disconnect}
                 className="border-slate-600 text-slate-300 hover:bg-slate-700"
               >
                 Disconnect
@@ -343,22 +267,7 @@ export function Dashboard() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={async () => {
-                            try {
-                              // Sync new matches
-                              const syncResponse = await fetch(
-                                `http://localhost:8000/api/v1/matches/${summonerData.puuid}?fetch_new=true&limit=20&region=${summonerData.region}`,
-                                { method: 'GET' }
-                              )
-                              if (syncResponse.ok) {
-                                console.log('✅ Successfully synced new matches')
-                                // Force a page refresh to show updated data
-                                window.location.reload()
-                              }
-                            } catch (error) {
-                              console.error('❌ Failed to sync matches:', error)
-                            }
-                          }}
+                          onClick={syncMatches}
                           className="border-purple-400/30 text-purple-400 hover:bg-purple-400/10"
                         >
                           🔄 Sync Data
