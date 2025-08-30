@@ -96,6 +96,12 @@
   - Fixed validation error when no match data exists for a player
   - Ensured all required Pydantic model fields are returned by the analytics service
   - Resolved "Field required" validation errors in overview stats API endpoint
+- **✅ Match Data Sync Fix**: Fixed issue where recent matches weren't showing up
+  - Added automatic match sync to RecentMatches and MatchHistory components
+  - Components now automatically fetch new matches from Riot API when loading
+  - Added prominent "Sync Data" button to Overview page for manual refresh
+  - Fixed issue where only cached data from 3 days ago was being displayed
+  - Ensured users can see their latest games including yesterday's matches
 
 ---
 

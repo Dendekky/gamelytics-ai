@@ -23,6 +23,20 @@ export function MatchHistory({ puuid, region, summonerName }: MatchHistoryProps)
   const { data: matchPerformance, isLoading, error, refetch } = useQuery({
     queryKey: ['match-performance', puuid, limit],
     queryFn: async (): Promise<PlayerMatchPerformance[]> => {
+      // First try to sync new matches to ensure we have the latest data
+      try {
+        const syncResponse = await fetch(
+          `http://localhost:8000/api/v1/matches/${puuid}?fetch_new=true&limit=${Math.max(limit, 20)}&region=${region}`,
+          { method: 'GET' }
+        )
+        if (syncResponse.ok) {
+          console.log('✅ Successfully synced new matches for MatchHistory')
+        }
+      } catch (syncError) {
+        console.log('⚠️ Could not sync new matches, using cached data:', syncError)
+      }
+      
+      // Now fetch the performance data (either newly synced or cached)
       const response = await fetch(
         `http://localhost:8000/api/v1/matches/${puuid}/performance?limit=${limit}`
       )

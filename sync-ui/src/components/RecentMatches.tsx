@@ -24,6 +24,20 @@ export function RecentMatches({ puuid, limit = 3 }: RecentMatchesProps) {
   const { data: recentMatches, isLoading, error } = useQuery({
     queryKey: ['recent-matches', puuid, limit],
     queryFn: async (): Promise<RecentMatch[]> => {
+      // First try to fetch new matches to ensure we have the latest data
+      try {
+        const syncResponse = await fetch(
+          `http://localhost:8000/api/v1/matches/${puuid}?limit=${limit}&fetch_new=true&region=na1`,
+          { method: 'GET' }
+        )
+        if (syncResponse.ok) {
+          console.log('✅ Successfully synced new matches for RecentMatches')
+        }
+      } catch (syncError) {
+        console.log('⚠️ Could not sync new matches, using cached data:', syncError)
+      }
+      
+      // Now fetch the matches (either newly synced or cached)
       const response = await fetch(
         `http://localhost:8000/api/v1/matches/${puuid}?limit=${limit}&fetch_new=false`
       )

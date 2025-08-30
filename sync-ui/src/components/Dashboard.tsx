@@ -335,9 +335,34 @@ export function Dashboard() {
                   {/* Recent Performance Summary */}
                   <div className="lg:col-span-2 space-y-6">
                     <Card className="border-slate-700/50 bg-slate-800/30 backdrop-blur">
-                      <CardHeader>
-                        <CardTitle className="text-white">Recent Activity</CardTitle>
-                        <CardDescription className="text-slate-300">Last 20 games</CardDescription>
+                      <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                          <CardTitle className="text-white">Recent Activity</CardTitle>
+                          <CardDescription className="text-slate-300">Last 20 games</CardDescription>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              // Sync new matches
+                              const syncResponse = await fetch(
+                                `http://localhost:8000/api/v1/matches/${summonerData.puuid}?fetch_new=true&limit=20&region=${summonerData.region}`,
+                                { method: 'GET' }
+                              )
+                              if (syncResponse.ok) {
+                                console.log('✅ Successfully synced new matches')
+                                // Force a page refresh to show updated data
+                                window.location.reload()
+                              }
+                            } catch (error) {
+                              console.error('❌ Failed to sync matches:', error)
+                            }
+                          }}
+                          className="border-purple-400/30 text-purple-400 hover:bg-purple-400/10"
+                        >
+                          🔄 Sync Data
+                        </Button>
                       </CardHeader>
                       <CardContent>
                         {/* Real Overview Stats */}
