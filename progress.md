@@ -608,3 +608,14 @@ GameLytics AI now includes **cutting-edge live game detection and real-time over
   - Simplified component logic by moving complex state management to stores
   - Improved code organization with separation of concerns between UI state and API operations
   - Enhanced maintainability with centralized state management
+
+##### Bug Fix: Summoner Name Attribute Error (2024-12-30) ✅
+- **✅ Fixed Live Games Endpoint**: Resolved AttributeError in `/api/v1/live-games/status/{puuid}` endpoint
+  - Issue: Endpoint was trying to access `summoner.summoner_name` which doesn't exist on the Summoner model
+  - Root cause: Summoner model uses Riot ID format (`game_name` + `tag_line`) instead of legacy `summoner_name`
+  - Solution: Updated endpoint response to use proper Summoner model attributes:
+    - `game_name`: The display name part of Riot ID
+    - `tag_line`: The tag part of Riot ID (after #)
+    - `riot_id`: Full formatted Riot ID (game_name#tag_line)
+  - Maintains backward compatibility while following current Riot API standards
+  - Endpoint now returns proper summoner identification data for live game status

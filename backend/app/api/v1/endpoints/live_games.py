@@ -50,7 +50,9 @@ async def get_live_game_status(
             "region": region,
             "summoner": {
                 "puuid": summoner.puuid,
-                "summoner_name": summoner.summoner_name,
+                "game_name": summoner.game_name,
+                "tag_line": summoner.tag_line,
+                "riot_id": summoner.riot_id,
                 "region": summoner.region
             }
         }
