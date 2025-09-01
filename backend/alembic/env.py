@@ -33,7 +33,7 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 # Import all models to ensure they're registered with Base.metadata
-from app.models import summoner, match, champion_mastery
+from app.models import summoner, match, champion_mastery, live_game
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

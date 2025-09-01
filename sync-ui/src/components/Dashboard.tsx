@@ -12,6 +12,7 @@ import { OverviewStats } from "./OverviewStats"
 import { RecentMatches } from "./RecentMatches"
 import { TopChampions } from "./TopChampions"
 import { PrimaryRole } from "./PrimaryRole"
+import LiveGameDetection from "./LiveGameDetection"
 import ErrorBoundary from "./ErrorBoundary"
 import { useAppStore } from "../stores/appStore"
 import { useApiStore } from "../stores/apiStore"
@@ -231,11 +232,12 @@ export function Dashboard() {
 
             {/* Navigation Tabs */}
             <div className="flex space-x-1 bg-slate-800/50 p-1 rounded-lg w-fit backdrop-blur border border-slate-700/50">
-              {[
+              {              [
                 { id: "overview", label: "Overview", icon: "📊" },
                 { id: "champions", label: "Champion Pool", icon: "🏆" },
                 { id: "matches", label: "Match History", icon: "📜" },
-                { id: "analytics", label: "Analytics", icon: "📈" }
+                { id: "analytics", label: "Analytics", icon: "📈" },
+                { id: "live", label: "Live Game", icon: "🔴" }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -356,6 +358,12 @@ export function Dashboard() {
                       : summonerData.name || "Unknown Summoner"
                     }
                   />
+                </ErrorBoundary>
+              )}
+
+              {activeTab === "live" && (
+                <ErrorBoundary>
+                  <LiveGameDetection />
                 </ErrorBoundary>
               )}
             </div>

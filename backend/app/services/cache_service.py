@@ -193,5 +193,11 @@ def cache_match_data(ttl_seconds: int = 1800):  # 30 minutes for match data
 def cache_champion_data(ttl_seconds: int = 3600):  # 1 hour for champion data
     return cache_result(ttl_seconds, "champions")
 
+def cache_live_data(ttl_seconds: int = 30):  # 30 seconds for live game data
+    return cache_result(ttl_seconds, "live_games")
+
+def cache_enemy_analysis(ttl_seconds: int = 300):  # 5 minutes for enemy analysis
+    return cache_result(ttl_seconds, "enemy_analysis")
+
 def cache_summoner_data(ttl_seconds: int = 900):  # 15 minutes for summoner data
     return cache_result(ttl_seconds, "summoner")

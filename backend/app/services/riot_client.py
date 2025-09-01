@@ -249,3 +249,91 @@ class RiotClient:
         
         url = f"{base_url}/lol/champion-mastery/v4/champion-masteries/by-summoner/{summoner_id}/by-champion/{champion_id}"
         return await self._make_rate_limited_request(url, "champion-mastery-v4")
+    
+    # ============================================================================
+    # 🔴 LIVE GAME DETECTION & SPECTATOR API
+    # ============================================================================
+    
+    async def get_active_game(self, summoner_id: str, region: str) -> Optional[Dict[str, Any]]:
+        """
+        Get active game information for a summoner using Spectator API
+        
+        Args:
+            summoner_id: The summoner ID (not PUUID) for the player
+            region: Regional endpoint to use
+            
+        Returns:
+            Active game data if player is in game, None if not in game
+        """
+        if not self.api_key:
+            raise ValueError("RIOT_API_KEY is not configured")
+        
+        base_url = self._get_regional_base_url(region)
+        if not base_url:
+            raise ValueError(f"Unsupported region: {region}")
+        
+        url = f"{base_url}/lol/spectator/v4/active-games/by-summoner/{summoner_id}"
+        return await self._make_rate_limited_request(url, "spectator-v4")
+    
+    async def get_featured_games(self, region: str) -> Optional[Dict[str, Any]]:
+        """
+        Get list of featured games (high MMR/streamer games)
+        
+        Args:
+            region: Regional endpoint to use
+            
+        Returns:
+            Featured games data or None if no featured games
+        """
+        if not self.api_key:
+            raise ValueError("RIOT_API_KEY is not configured")
+        
+        base_url = self._get_regional_base_url(region)
+        if not base_url:
+            raise ValueError(f"Unsupported region: {region}")
+        
+        url = f"{base_url}/lol/spectator/v4/featured-games"
+        return await self._make_rate_limited_request(url, "spectator-v4")
+    
+    async def check_if_in_game(self, puuid: str, region: str) -> Optional[Dict[str, Any]]:
+        """
+        Complete flow: Check if a player (by PUUID) is currently in a live game
+        
+        This method combines summoner lookup and active game detection:
+        1. Uses PUUID to get summoner_id
+        2. Uses summoner_id to check for active game
+        
+        Args:
+            puuid: Player PUUID
+            region: Region for API calls
+            
+        Returns:
+            Active game data if in game, None if not in game or not found
+        """
+        try:
+            # First get summoner data to get summoner_id
+            summoner_data = await self.get_summoner_by_puuid(puuid, region)
+            if not summoner_data:
+                return None
+            
+            summoner_id = summoner_data.get("id")
+            if not summoner_id:
+                return None
+            
+            # Now check for active game
+            active_game = await self.get_active_game(summoner_id, region)
+            
+            if active_game:
+                # Enhance the active game data with summoner info
+                active_game["target_summoner"] = {
+                    "puuid": puuid,
+                    "summoner_id": summoner_id,
+                    "summoner_name": summoner_data.get("name"),
+                    "summoner_level": summoner_data.get("summonerLevel")
+                }
+            
+            return active_game
+            
+        except Exception as e:
+            print(f"Error checking if player in game: {str(e)}")
+            return None

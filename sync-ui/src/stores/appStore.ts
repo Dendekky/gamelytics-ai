@@ -19,7 +19,7 @@ interface AppState {
   error: string
   
   // UI state
-  activeTab: 'overview' | 'champions' | 'matches' | 'analytics'
+  activeTab: 'overview' | 'champions' | 'matches' | 'analytics' | 'live'
   inputMode: 'single' | 'separate'
   
   // Form data
@@ -35,7 +35,7 @@ interface AppState {
   setSummonerData: (data: SummonerResponse | null) => void
   setLoading: (loading: boolean) => void
   setError: (error: string) => void
-  setActiveTab: (tab: 'overview' | 'champions' | 'matches' | 'analytics') => void
+  setActiveTab: (tab: 'overview' | 'champions' | 'matches' | 'analytics' | 'live') => void
   setInputMode: (mode: 'single' | 'separate') => void
   setRiotId: (id: string) => void
   setGameName: (name: string) => void
