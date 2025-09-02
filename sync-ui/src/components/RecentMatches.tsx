@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
+import { getChampionNameById } from '../lib/champions'
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Skeleton } from "./ui/skeleton"
 
@@ -10,13 +11,17 @@ interface RecentMatchesProps {
 interface RecentMatch {
   match_id: string
   champion_name: string
-  champion_id: number
+  champion_id?: number
   kills: number
   deaths: number
   assists: number
+  kda_ratio: number
+  cs: number
+  gold_earned: number
+  damage_to_champions: number
+  vision_score: number
   win: boolean
-  game_duration: number
-  queue_type: string
+  game_duration_minutes: number
   game_creation: string
 }
 
@@ -37,15 +42,15 @@ export function RecentMatches({ puuid, limit = 3 }: RecentMatchesProps) {
         console.log('⚠️ Could not sync new matches, using cached data:', syncError)
       }
       
-      // Now fetch the matches (either newly synced or cached)
+      // Now fetch the performance data (includes champion names and KDA)
       const response = await fetch(
-        `http://localhost:8000/api/v1/matches/${puuid}?limit=${limit}&fetch_new=false`
+        `http://localhost:8000/api/v1/matches/${puuid}/performance?limit=${limit}`
       )
       if (!response.ok) {
-        throw new Error('Failed to fetch recent matches')
+        throw new Error('Failed to fetch recent match performance')
       }
       const data = await response.json()
-      return data.matches || []
+      return data || []
     },
     enabled: !!puuid,
     retry: 1, // Only retry once to prevent infinite loading
@@ -66,10 +71,10 @@ export function RecentMatches({ puuid, limit = 3 }: RecentMatchesProps) {
     )
   }
 
-  const formatDuration = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${minutes}m ${secs}s`
+  const formatDuration = (minutes: number) => {
+    const mins = Math.floor(minutes)
+    const secs = Math.floor((minutes - mins) * 60)
+    return `${mins}m ${secs}s`
   }
 
   const formatKDA = (kills: number, deaths: number, assists: number) => {
@@ -106,16 +111,16 @@ export function RecentMatches({ puuid, limit = 3 }: RecentMatchesProps) {
             <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
               match.win ? "bg-green-600" : "bg-red-600"
             }`}>
-              <span className="text-white font-bold">{getChampionIcon(match.champion_name)}</span>
+              <span className="text-white font-bold">{getChampionIcon(match.champion_name || getChampionNameById(match.champion_id || 0))}</span>
             </div>
             <div>
               <div className="text-white font-medium">
-                {match.champion_name} • {match.queue_type || "Ranked Solo"}
+                {match.champion_name || getChampionNameById(match.champion_id || 0)} • Ranked Solo
               </div>
               <div className={`text-sm ${
                 match.win ? "text-green-400" : "text-red-400"
               }`}>
-                {match.win ? "Victory" : "Defeat"} • {formatDuration(match.game_duration)}
+                {match.win ? "Victory" : "Defeat"} • {formatDuration(match.game_duration_minutes)}
               </div>
             </div>
           </div>
@@ -126,7 +131,7 @@ export function RecentMatches({ puuid, limit = 3 }: RecentMatchesProps) {
               {formatKDA(match.kills, match.deaths, match.assists)}
             </div>
             <div className="text-slate-400 text-sm">
-              {((match.kills + match.assists) / Math.max(match.deaths, 1)).toFixed(1)} KDA
+              {match.kda_ratio ? match.kda_ratio.toFixed(1) : '0.0'} KDA
             </div>
           </div>
         </div>

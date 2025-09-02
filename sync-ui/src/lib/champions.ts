@@ -1,10 +1,85 @@
 // Champion utility functions
 
-export const getChampionImageUrl = (championName: string): string => {
-  // Convert champion name to proper format for Data Dragon
+// Cache for champion data
+let championDataCache: Record<string, any> | null = null
+let championDataCacheTime = 0
+const CACHE_DURATION = 24 * 60 * 60 * 1000 // 24 hours
+
+async function getChampionData(): Promise<Record<string, any>> {
+  const now = Date.now()
+  
+  // Return cached data if it's still valid
+  if (championDataCache && (now - championDataCacheTime) < CACHE_DURATION) {
+    return championDataCache
+  }
+  
+  try {
+    const response = await fetch('https://ddragon.leagueoflegends.com/cdn/14.1.1/data/en_US/champion.json')
+    const data = await response.json()
+    
+    championDataCache = data.data || {}
+    championDataCacheTime = now
+    
+    return championDataCache || {}
+  } catch (error) {
+    console.warn('Failed to fetch champion data, using fallback:', error)
+    return championDataCache || {}
+  }
+}
+
+export const getChampionImageUrlAsync = async (championName: string): Promise<string> => {
+  try {
+    const championData = await getChampionData()
+    
+    // Find the champion by name to get the correct key for the image URL
+    const champion = Object.values(championData).find((champ: any) => 
+      champ.name === championName
+    ) as any
+    
+    if (champion && champion.id) {
+      // Use the champion's ID from the API data (this handles all special cases correctly)
+      return `https://ddragon.leagueoflegends.com/cdn/14.1.1/img/champion/${champion.id}.png`
+    }
+  } catch (error) {
+    console.warn('Error getting champion image URL:', error)
+  }
+  
+  // Fallback: format the name as before
   const formattedName = championName.replace(/[^a-zA-Z0-9]/g, '').replace(/\s+/g, '')
   return `https://ddragon.leagueoflegends.com/cdn/14.1.1/img/champion/${formattedName}.png`
 }
+
+// Pre-populate the cache on app startup
+export const initializeChampionData = async (): Promise<void> => {
+  try {
+    await getChampionData()
+    console.log('Champion data cache initialized')
+  } catch (error) {
+    console.warn('Failed to initialize champion data cache:', error)
+  }
+}
+
+// Synchronous version for components that can't handle async
+// This will use cached data if available, or fallback to basic formatting
+export const getChampionImageUrlSync = (championName: string): string => {
+  // If we have cached data, use it
+  if (championDataCache) {
+    const champion = Object.values(championDataCache).find((champ: any) => 
+      champ.name === championName
+    ) as any
+    
+    if (champion && champion.id) {
+      return `https://ddragon.leagueoflegends.com/cdn/14.1.1/img/champion/${champion.id}.png`
+    }
+  }
+  
+  // Fallback formatting
+  const formattedName = championName.replace(/[^a-zA-Z0-9]/g, '').replace(/\s+/g, '')
+  return `https://ddragon.leagueoflegends.com/cdn/14.1.1/img/champion/${formattedName}.png`
+}
+
+// Main export - synchronous version that uses cache when available
+export const getChampionImageUrl = getChampionImageUrlSync
 
 export const getChampionFallback = (championName: string): string => {
   return championName.slice(0, 2).toUpperCase()
@@ -58,174 +133,19 @@ export const formatMasteryPoints = (points: number): string => {
   return points.toString()
 }
 
-// Champion ID to name mapping for common champions (can be expanded)
-export const CHAMPION_NAMES: Record<number, string> = {
-  1: "Annie",
-  2: "Olaf", 
-  3: "Galio",
-  4: "Twisted Fate",
-  5: "Xin Zhao",
-  6: "Urgot",
-  7: "LeBlanc",
-  8: "Vladimir",
-  9: "Fiddlesticks",
-  10: "Kayle",
-  11: "Master Yi",
-  12: "Alistar",
-  13: "Ryze",
-  14: "Sion",
-  15: "Sivir",
-  16: "Soraka",
-  17: "Teemo",
-  18: "Tristana",
-  19: "Warwick",
-  20: "Nunu & Willump",
-  21: "Miss Fortune",
-  22: "Ashe",
-  23: "Tryndamere",
-  24: "Jax",
-  25: "Morgana",
-  26: "Zilean",
-  27: "Singed",
-  28: "Evelynn",
-  29: "Twitch",
-  30: "Karthus",
-  31: "Cho'Gath",
-  32: "Amumu",
-  33: "Rammus",
-  34: "Anivia",
-  35: "Shaco",
-  36: "Dr. Mundo",
-  37: "Sona",
-  38: "Kassadin",
-  39: "Irelia",
-  40: "Janna",
-  41: "Gangplank",
-  42: "Corki",
-  43: "Karma",
-  44: "Taric",
-  45: "Veigar",
-  48: "Trundle",
-  50: "Swain",
-  51: "Caitlyn",
-  53: "Blitzcrank",
-  54: "Malphite",
-  55: "Katarina",
-  56: "Nocturne",
-  57: "Maokai",
-  58: "Renekton",
-  59: "Jarvan IV",
-  60: "Elise",
-  61: "Orianna",
-  62: "Wukong",
-  63: "Brand",
-  64: "Lee Sin",
-  67: "Vayne",
-  68: "Rumble",
-  69: "Cassiopeia",
-  72: "Skarner",
-  74: "Heimerdinger",
-  75: "Nasus",
-  76: "Nidalee",
-  77: "Udyr",
-  78: "Poppy",
-  79: "Gragas",
-  80: "Pantheon",
-  81: "Ezreal",
-  82: "Mordekaiser",
-  83: "Yorick",
-  84: "Akali",
-  85: "Kennen",
-  86: "Garen",
-  89: "Leona",
-  90: "Malzahar",
-  91: "Talon",
-  92: "Riven",
-  96: "Kog'Maw",
-  98: "Shen",
-  99: "Lux",
-  101: "Xerath",
-  102: "Shyvana",
-  103: "Ahri",
-  104: "Graves",
-  105: "Fizz",
-  106: "Volibear",
-  107: "Rengar",
-  110: "Varus",
-  111: "Nautilus",
-  112: "Viktor",
-  113: "Sejuani",
-  114: "Fiora",
-  115: "Ziggs",
-  117: "Lulu",
-  119: "Draven",
-  120: "Hecarim",
-  121: "Kha'Zix",
-  122: "Darius",
-  126: "Jayce",
-  127: "Lissandra",
-  131: "Diana",
-  133: "Quinn",
-  134: "Syndra",
-  136: "Aurelion Sol",
-  141: "Kayn",
-  142: "Azir",
-  143: "Zyra",
-  145: "Kai'Sa",
-  147: "Seraphine",
-  150: "Gnar",
-  154: "Zac",
-  157: "Yasuo",
-  161: "Vel'Koz",
-  163: "Taliyah",
-  164: "Camille",
-  166: "Akshan",
-  200: "Bel'Veth",
-  201: "Braum",
-  202: "Jhin",
-  203: "Kindred",
-  221: "Zeri",
-  222: "Jinx",
-  223: "Tahm Kench",
-  234: "Viego",
-  235: "Senna",
-  236: "Lucian",
-  238: "Zed",
-  240: "Kled",
-  245: "Ekko",
-  246: "Qiyana",
-  254: "Vi",
-  266: "Aatrox",
-  267: "Nami",
-  268: "Azir",
-  350: "Yuumi",
-  360: "Samira",
-  412: "Thresh",
-  420: "Illaoi",
-  421: "Rek'Sai",
-  427: "Ivern",
-  429: "Kalista",
-  432: "Bard",
-  516: "Ornn",
-  517: "Sylas",
-  518: "Neeko",
-  523: "Aphelios",
-  526: "Rell",
-  555: "Pyke",
-  711: "Vex",
-  777: "Yone",
-  875: "Sett",
-  876: "Lillia",
-  887: "Gwen",
-  888: "Renata Glasc",
-  895: "Nilah",
-  897: "K'Sante",
-  901: "Smolder",
-  902: "Milio",
-  910: "Hwei",
-  950: "Naafiri"
-}
-
+// Dynamic champion ID to name mapping using cached Data Dragon data
 export const getChampionNameById = (championId: number): string => {
-  return CHAMPION_NAMES[championId] || `Champion ${championId}`
+  // If we have cached data, use it
+  if (championDataCache) {
+    const champion = Object.values(championDataCache).find((champ: any) => 
+      parseInt(champ.key) === championId
+    ) as any
+    
+    if (champion && champion.name) {
+      return champion.name
+    }
+  }
+  
+  // Fallback to generic name
+  return `Champion ${championId}`
 }
