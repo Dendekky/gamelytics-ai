@@ -103,6 +103,6 @@ class SummonerService:
             game_name=summoner.game_name,
             tag_line=summoner.tag_line,
             level=summoner.summoner_level,
-            revision_date=summoner.revision_date,
+            revision_date=summoner.revision_date or 0,  # Provide default if None
             region=summoner.region
         )

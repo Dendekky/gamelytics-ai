@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Optional
+from typing import Optional
 
 from app.core.database import get_db
 from app.schemas.champion_mastery import (
@@ -13,6 +13,7 @@ from app.schemas.champion_mastery import (
 from app.services.champion_mastery_service import ChampionMasteryService
 from app.services.summoner_service import SummonerService
 from app.services.analytics_service import AnalyticsService
+from app.services.champion_data_service import ChampionDataService
 
 router = APIRouter()
 
@@ -63,12 +64,10 @@ async def sync_champion_masteries(
         if not summoner:
             raise HTTPException(status_code=404, detail="Summoner not found")
         
-        if not summoner.summoner_id:
-            raise HTTPException(status_code=400, detail="Summoner ID not available for mastery sync")
         
         # Fetch and store masteries
         masteries = await ChampionMasteryService.fetch_and_store_masteries(
-            db, puuid, summoner.summoner_id, region
+            db, puuid, region
         )
         
         return {
@@ -97,41 +96,57 @@ async def get_enhanced_masteries(
         summary = await ChampionMasteryService.get_mastery_stats_summary(db, puuid)
         
         # Get champion performance data
-        champion_performance = await AnalyticsService.get_champion_performance(db, puuid, days)
+        try:
+            champion_performance = await AnalyticsService.get_champion_performance(db, puuid, days)
+        except Exception:
+            # Return empty performance data to continue
+            champion_performance = []
         
         # Create a lookup for champion performance
-        performance_lookup = {cp["champion_id"]: cp for cp in champion_performance}
+        try:
+            performance_lookup = {cp["champion_id"]: cp for cp in champion_performance}
+        except Exception:
+            performance_lookup = {}
         
         # Enhance masteries with performance data
         enhanced_masteries = []
         for mastery in masteries:
-            perf_data = performance_lookup.get(mastery["champion_id"], {})
-            
-            enhanced_mastery = ChampionMasteryWithPerformance(
-                champion_id=mastery["champion_id"],
-                champion_name=perf_data.get("champion_name", "Unknown Champion"),
-                mastery_level=mastery["mastery_level"],
-                mastery_points=mastery["mastery_points"],
-                points_until_next_level=mastery["points_until_next_level"],
-                chest_granted=mastery["chest_granted"],
-                tokens_earned=mastery["tokens_earned"],
-                last_play_time=mastery["last_play_time"],
-                mastery_progress_percentage=mastery["mastery_progress_percentage"],
-                total_games_played=perf_data.get("total_games", 0),
-                wins=perf_data.get("wins", 0),
-                losses=perf_data.get("losses", 0),
-                win_rate=perf_data.get("win_rate", 0.0),
-                avg_kda=perf_data.get("avg_kda", 0.0),
-                avg_cs_per_min=perf_data.get("avg_cs_per_min", 0.0),
-                last_played_match=perf_data.get("last_played", None)
-            )
-            enhanced_masteries.append(enhanced_mastery)
+            try:
+                perf_data = performance_lookup.get(mastery["champion_id"], {})
+                
+                # Get champion name from performance data or dynamically fetch it
+                champion_name = perf_data.get("champion_name")
+                if not champion_name:
+                    champion_name = await ChampionDataService.get_champion_name_by_id(mastery["champion_id"])
+                
+                enhanced_mastery = ChampionMasteryWithPerformance(
+                        champion_id=mastery["champion_id"],
+                        champion_name=champion_name,
+                        mastery_level=mastery["mastery_level"],
+                        mastery_points=mastery["mastery_points"],
+                        points_until_next_level=mastery["points_until_next_level"],
+                        chest_granted=mastery["chest_granted"],
+                        tokens_earned=mastery["tokens_earned"],
+                        last_play_time=mastery["last_play_time"],
+                        mastery_progress_percentage=mastery["mastery_progress_percentage"],
+                        total_games_played=perf_data.get("total_games", 0),
+                        wins=perf_data.get("wins", 0),
+                        losses=perf_data.get("losses", 0),
+                        win_rate=perf_data.get("win_rate", 0.0),
+                        avg_kda=perf_data.get("avg_kda", 0.0),
+                        avg_cs_per_min=perf_data.get("avg_cs_per_min", 0.0),
+                        last_played_match=perf_data.get("last_played").isoformat() if perf_data.get("last_played") else None
+                )
+                enhanced_masteries.append(enhanced_mastery)
+            except Exception:
+                continue
         
-        return ChampionMasteryEnhancedResponse(
+        response = ChampionMasteryEnhancedResponse(
             masteries=enhanced_masteries,
             summary=ChampionMasterySummaryResponse(**summary),
             total_count=len(enhanced_masteries)
         )
+        return response
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch enhanced masteries: {str(e)}")

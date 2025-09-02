@@ -10,7 +10,7 @@ from .cache_service import cache_champion_data
 
 
 class ChampionMasteryService:
-    """Service for managing champion mastery data"""
+    """Service for managing champion mastery progression data (points, levels, chest status, etc.)"""
     
     @staticmethod
     async def get_mastery_by_puuid(
@@ -95,7 +95,6 @@ class ChampionMasteryService:
     async def fetch_and_store_masteries(
         db: AsyncSession,
         puuid: str,
-        summoner_id: str,
         region: str
     ) -> List[ChampionMastery]:
         """
@@ -104,7 +103,6 @@ class ChampionMasteryService:
         Args:
             db: Database session
             puuid: Player PUUID
-            summoner_id: Summoner ID for API calls
             region: Region for API calls
         
         Returns:
@@ -113,7 +111,7 @@ class ChampionMasteryService:
         riot_client = RiotClient()
         
         # Get masteries from Riot API
-        mastery_data_list = await riot_client.get_champion_masteries(summoner_id, region)
+        mastery_data_list = await riot_client.get_champion_masteries(puuid, region)
         print(f"🏆 Riot API returned {len(mastery_data_list)} champion masteries")
         
         stored_masteries = []

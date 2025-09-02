@@ -221,7 +221,7 @@ class RiotClient:
         url = f"{base_url}/lol/match/v5/matches/{match_id}"
         return await self._make_rate_limited_request(url, "match-v5")
     
-    async def get_champion_masteries(self, summoner_id: str, region: str) -> List[Dict[str, Any]]:
+    async def get_champion_masteries(self, puuid: str, region: str) -> List[Dict[str, Any]]:
         """
         Get champion mastery information for a summoner
         """
@@ -232,11 +232,25 @@ class RiotClient:
         if not base_url:
             raise ValueError(f"Unsupported region: {region}")
         
-        url = f"{base_url}/lol/champion-mastery/v4/champion-masteries/by-summoner/{summoner_id}"
+        url = f"{base_url}/lol/champion-mastery/v4/champion-masteries/by-puuid/{puuid}"
         result = await self._make_rate_limited_request(url, "champion-mastery-v4")
         return result if result is not None else []
     
-    async def get_champion_mastery_by_champion(self, summoner_id: str, champion_id: int, region: str) -> Optional[Dict[str, Any]]:
+    async def get_champion_data(self) -> Optional[Dict[str, Any]]:
+        """
+        Get champion data from Data Dragon API (static data, no API key required)
+        """
+        url = "https://ddragon.leagueoflegends.com/cdn/14.1.1/data/en_US/champion.json"
+        
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(url)
+                response.raise_for_status()
+                return response.json()
+        except Exception:
+            return None
+    
+    async def get_champion_mastery_by_champion(self, puuid: str, champion_id: int, region: str) -> Optional[Dict[str, Any]]:
         """
         Get champion mastery for a specific champion
         """
@@ -247,7 +261,7 @@ class RiotClient:
         if not base_url:
             raise ValueError(f"Unsupported region: {region}")
         
-        url = f"{base_url}/lol/champion-mastery/v4/champion-masteries/by-summoner/{summoner_id}/by-champion/{champion_id}"
+        url = f"{base_url}/lol/champion-mastery/v4/champion-masteries/by-puuid/{puuid}/by-champion/{champion_id}"
         return await self._make_rate_limited_request(url, "champion-mastery-v4")
     
     # ============================================================================

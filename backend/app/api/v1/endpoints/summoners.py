@@ -111,4 +111,4 @@ async def get_summoner(puuid: str, db: AsyncSession = Depends(get_db)):
         return SummonerService.summoner_to_response(summoner)
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving summoner: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"Error retrieving summoner: {str(e)}")
