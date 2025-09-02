@@ -673,3 +673,7 @@ GameLytics AI now includes **cutting-edge live game detection and real-time over
   - **Critical URL Fix**: Corrected frontend API endpoint from `/enhanced/{puuid}` to `/{puuid}/enhanced`
   - **User Experience**: Top Champions now shows actual win rates and game counts when data exists, "N/A" when no matches found
   - **Data Accuracy**: Proper distinction between "0% win rate" (played but lost all) vs "N/A" (never played)
+
+##### Primary Role Games Count Fix (2025-01-09) ✅
+- **✅ Fixed Primary Role Games Display**: Resolved missing games count showing only "games • 56% WR"
+  - **Field Name Correction**: Changed from `games` to `total_games` to match backend API response format

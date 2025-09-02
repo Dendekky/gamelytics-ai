@@ -8,7 +8,7 @@ interface PrimaryRoleProps {
 
 interface RolePerformance {
   role: string
-  games: number
+  total_games: number
   wins: number
   losses: number
   win_rate: number
@@ -63,7 +63,7 @@ export function PrimaryRole({ puuid, days = 30 }: PrimaryRoleProps) {
 
   // Find the role with the most games
   const primaryRole = roleData.reduce((prev, current) => 
-    (current.games > prev.games) ? current : prev
+    (current.total_games > prev.total_games) ? current : prev
   )
 
   if (!primaryRole) {
@@ -105,7 +105,7 @@ export function PrimaryRole({ puuid, days = 30 }: PrimaryRoleProps) {
       <div className="text-4xl">{getRoleIcon(primaryRole.role)}</div>
       <div className="text-xl font-bold text-purple-400">{formatRole(primaryRole.role)}</div>
       <div className="text-slate-400 text-sm">
-        {primaryRole.games} games • {Math.round(primaryRole.win_rate)}% WR
+        {primaryRole.total_games} games • {Math.round(primaryRole.win_rate)}% WR
       </div>
     </div>
   )
