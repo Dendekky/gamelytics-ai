@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { type PlayerMatchPerformance, QUEUE_TYPES, MAP_NAMES } from "@/types/match"
+import { getChampionImageUrl as getDynamicChampionImageUrl } from '../lib/champions'
 
 interface MatchCardProps {
   match: PlayerMatchPerformance
@@ -42,9 +43,8 @@ export function MatchCard({ match, onClick }: MatchCardProps) {
   }
 
   const getChampionImageUrl = (championName: string) => {
-    // Using DataDragon CDN for champion images (more reliable)
-    const formattedName = championName.replace(/[^a-zA-Z0-9]/g, '').replace(/\s+/g, '')
-    return `https://ddragon.leagueoflegends.com/cdn/14.1.1/img/champion/${formattedName}.png`
+    // Use our dynamic champion image URL function
+    return getDynamicChampionImageUrl(championName)
   }
 
   const getChampionFallback = (championName: string) => {

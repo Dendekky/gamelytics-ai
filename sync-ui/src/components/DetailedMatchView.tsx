@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowLeft, Crown, Sword, Shield, Eye, Coins } from "lucide-react"
+import { getDataDragonAssetUrlSync } from '../lib/champions'
 
 interface DetailedMatchViewProps {
   matchId: string
@@ -52,14 +53,14 @@ interface DetailedMatch {
 }
 
 const getChampionImageUrl = (championName: string): string => {
-  // Convert champion name to proper format for Data Dragon
+  // Convert champion name to proper format for Data Dragon  
   const formattedName = championName.replace(/[^a-zA-Z0-9]/g, '').replace(/\s+/g, '')
-  return `https://ddragon.leagueoflegends.com/cdn/14.1.1/img/champion/${formattedName}.png`
+  return getDataDragonAssetUrlSync('champion', formattedName)
 }
 
 const getItemImageUrl = (itemId: number): string => {
   if (itemId === 0) return '' // No item
-  return `https://ddragon.leagueoflegends.com/cdn/14.1.1/img/item/${itemId}.png`
+  return getDataDragonAssetUrlSync('item', itemId)
 }
 
 const getQueueName = (queueId: number): string => {

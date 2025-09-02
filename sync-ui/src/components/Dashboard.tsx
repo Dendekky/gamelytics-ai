@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { getDataDragonAssetUrlSync } from '../lib/champions'
 import { MatchHistory } from "./MatchHistory"
 import { Analytics } from "./Analytics"
 import { ChampionPool } from "./ChampionPool"
@@ -197,7 +198,7 @@ export function Dashboard() {
               <div className="flex items-center space-x-6">
                 <div className="relative">
                   <Avatar className="h-20 w-20 border-2 border-purple-400/50">
-                    <AvatarImage src={`https://ddragon.leagueoflegends.com/cdn/14.1.1/img/profileicon/588.png`} />
+                    <AvatarImage src={getDataDragonAssetUrlSync('profileicon', 588)} />
                     <AvatarFallback className="bg-purple-600 text-white text-xl">
                       {(summonerData.game_name || summonerData.name || "U")[0].toUpperCase()}
                     </AvatarFallback>

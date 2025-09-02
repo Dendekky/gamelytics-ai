@@ -236,13 +236,28 @@ class RiotClient:
         result = await self._make_rate_limited_request(url, "champion-mastery-v4")
         return result if result is not None else []
     
+    async def get_latest_version(self) -> str:
+        """
+        Get the latest Data Dragon version
+        """
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get("https://ddragon.leagueoflegends.com/api/versions.json")
+                response.raise_for_status()
+                versions = response.json()
+                return versions[0]  # First version is the latest
+        except Exception:
+            return "15.17.1"  # Fallback to known working version
+    
     async def get_champion_data(self) -> Optional[Dict[str, Any]]:
         """
         Get champion data from Data Dragon API (static data, no API key required)
+        Uses the latest available version automatically
         """
-        url = "https://ddragon.leagueoflegends.com/cdn/14.1.1/data/en_US/champion.json"
-        
         try:
+            latest_version = await self.get_latest_version()
+            url = f"https://ddragon.leagueoflegends.com/cdn/{latest_version}/data/en_US/champion.json"
+            
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.get(url)
                 response.raise_for_status()
