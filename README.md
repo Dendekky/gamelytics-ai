@@ -22,7 +22,7 @@ gg-sync/
 
 ## 🎯 Running the Application
 
-### 1. Start the Backend Server
+### 1. Set Up the Backend
 
 ```bash
 # Navigate to backend directory
@@ -30,6 +30,9 @@ cd backend
 
 # Install dependencies and create virtual environment (first time only)
 uv sync
+
+# Set up the database (REQUIRED - first time only)
+uv run alembic upgrade head
 
 # Start the FastAPI server
 uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
