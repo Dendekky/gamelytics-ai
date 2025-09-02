@@ -152,42 +152,49 @@ class AnalyticsService:
         # Calculate stats for each champion
         champion_performance = []
         for champion_name, champion_matches in champion_stats.items():
-            total_games = len(champion_matches)
-            wins = sum(1 for _, p in champion_matches if p.win)
-            
-            # Calculate averages
-            avg_kills = statistics.mean([p.kills for _, p in champion_matches])
-            avg_deaths = statistics.mean([p.deaths for _, p in champion_matches])
-            avg_assists = statistics.mean([p.assists for _, p in champion_matches])
-            avg_kda = (avg_kills + avg_assists) / avg_deaths if avg_deaths > 0 else float(avg_kills + avg_assists)
-            
-            # CS per minute
-            cs_per_min_values = []
-            for match, participant in champion_matches:
-                if match.game_duration > 0:
-                    cs_per_min = participant.total_minions_killed / (match.game_duration / 60)
-                    cs_per_min_values.append(cs_per_min)
-            
-            avg_cs_per_min = statistics.mean(cs_per_min_values) if cs_per_min_values else 0.0
-            avg_damage = statistics.mean([p.total_damage_dealt_to_champions for _, p in champion_matches])
-            avg_vision = statistics.mean([p.vision_score for _, p in champion_matches])
-            
-            champion_performance.append({
-                "champion_name": champion_name,
-                "champion_id": champion_matches[0][1].champion_id,  # Get from first match
-                "total_games": total_games,
-                "wins": wins,
-                "losses": total_games - wins,
-                "win_rate": round((wins / total_games) * 100, 1),
-                "avg_kda": round(avg_kda, 2),
-                "avg_kills": round(avg_kills, 1),
-                "avg_deaths": round(avg_deaths, 1),
-                "avg_assists": round(avg_assists, 1),
-                "avg_cs_per_min": round(avg_cs_per_min, 1),
-                "avg_damage_to_champions": round(avg_damage, 0),
-                "avg_vision_score": round(avg_vision, 1),
-                "last_played": max([m.game_creation for m, _ in champion_matches])
-            })
+            try:
+                total_games = len(champion_matches)
+                wins = sum(1 for _, p in champion_matches if p.win)
+                
+                # Calculate averages
+                avg_kills = statistics.mean([p.kills for _, p in champion_matches])
+                avg_deaths = statistics.mean([p.deaths for _, p in champion_matches])
+                avg_assists = statistics.mean([p.assists for _, p in champion_matches])
+                avg_kda = (avg_kills + avg_assists) / avg_deaths if avg_deaths > 0 else float(avg_kills + avg_assists)
+                
+                # CS per minute
+                cs_per_min_values = []
+                for match, participant in champion_matches:
+                    if match.game_duration and match.game_duration > 0:
+                        cs_per_min = participant.total_minions_killed / (match.game_duration / 60)
+                        cs_per_min_values.append(cs_per_min)
+                
+                avg_cs_per_min = statistics.mean(cs_per_min_values) if cs_per_min_values else 0.0
+                avg_damage = statistics.mean([p.total_damage_dealt_to_champions for _, p in champion_matches])
+                avg_vision = statistics.mean([p.vision_score for _, p in champion_matches])
+                
+                # Handle last_played safely
+                valid_dates = [m.game_creation for m, _ in champion_matches if m.game_creation is not None]
+                last_played = max(valid_dates) if valid_dates else None
+                
+                champion_performance.append({
+                    "champion_name": champion_name,
+                    "champion_id": champion_matches[0][1].champion_id,  # Get from first match
+                    "total_games": total_games,
+                    "wins": wins,
+                    "losses": total_games - wins,
+                    "win_rate": round((wins / total_games) * 100, 1),
+                    "avg_kda": round(avg_kda, 2),
+                    "avg_kills": round(avg_kills, 1),
+                    "avg_deaths": round(avg_deaths, 1),
+                    "avg_assists": round(avg_assists, 1),
+                    "avg_cs_per_min": round(avg_cs_per_min, 1),
+                    "avg_damage_to_champions": round(avg_damage, 0),
+                    "avg_vision_score": round(avg_vision, 1),
+                    "last_played": last_played
+                })
+            except Exception:
+                continue
         
         # Sort by total games played (most played first)
         champion_performance.sort(key=lambda x: x["total_games"], reverse=True)
