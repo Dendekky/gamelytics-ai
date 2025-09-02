@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Skeleton } from "./ui/skeleton"
 import { ChampionMasterySync } from "./ChampionMasterySync"
+import { getChampionNameById } from '../lib/champions'
 
 interface TopChampionsProps {
   puuid: string
@@ -30,7 +31,7 @@ export function TopChampions({ puuid, region, limit = 3 }: TopChampionsProps) {
     queryKey: ['top-champions', puuid, limit],
     queryFn: async (): Promise<ChampionMastery[]> => {
       console.log('Fetching top champions for puuid:', puuid)
-      const url = `http://localhost:8000/api/v1/champion-mastery/enhanced/${puuid}?limit=${limit}`
+      const url = `http://localhost:8000/api/v1/champion-mastery/${puuid}/enhanced?limit=${limit}`
       console.log('TopChampions API URL:', url)
       
       const response = await fetch(url)
@@ -121,7 +122,9 @@ export function TopChampions({ puuid, region, limit = 3 }: TopChampionsProps) {
               <span className="text-white text-xs font-bold">{i + 1}</span>
             </div>
             <div>
-              <div className="text-white font-medium">{champ.champion_name}</div>
+              <div className="text-white font-medium">
+                {champ.champion_name || getChampionNameById(champ.champion_id)}
+              </div>
               <div className="text-xs text-slate-400">
                 M{champ.mastery_level} • {champ.mastery_points.toLocaleString()} pts
               </div>

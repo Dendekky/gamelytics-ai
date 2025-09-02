@@ -119,6 +119,30 @@ async def get_enhanced_masteries(
                 if not champion_name:
                     champion_name = await ChampionDataService.get_champion_name_by_id(mastery["champion_id"])
                 
+                # Ensure we always have a valid champion name
+                if not champion_name or champion_name.startswith("Champion "):
+                    champion_name = await ChampionDataService.get_champion_name_by_id(mastery["champion_id"])
+                
+                # Handle performance data - use None for no data instead of 0
+                if perf_data:
+                    # We have performance data for this champion
+                    total_games = perf_data.get("total_games")
+                    wins = perf_data.get("wins")
+                    losses = perf_data.get("losses")
+                    win_rate = perf_data.get("win_rate")
+                    avg_kda = perf_data.get("avg_kda")
+                    avg_cs_per_min = perf_data.get("avg_cs_per_min")
+                    last_played_match = perf_data.get("last_played").isoformat() if perf_data.get("last_played") else None
+                else:
+                    # No performance data available - use None for all fields
+                    total_games = None
+                    wins = None
+                    losses = None
+                    win_rate = None
+                    avg_kda = None
+                    avg_cs_per_min = None
+                    last_played_match = None
+                
                 enhanced_mastery = ChampionMasteryWithPerformance(
                         champion_id=mastery["champion_id"],
                         champion_name=champion_name,
@@ -129,13 +153,13 @@ async def get_enhanced_masteries(
                         tokens_earned=mastery["tokens_earned"],
                         last_play_time=mastery["last_play_time"],
                         mastery_progress_percentage=mastery["mastery_progress_percentage"],
-                        total_games_played=perf_data.get("total_games", 0),
-                        wins=perf_data.get("wins", 0),
-                        losses=perf_data.get("losses", 0),
-                        win_rate=perf_data.get("win_rate", 0.0),
-                        avg_kda=perf_data.get("avg_kda", 0.0),
-                        avg_cs_per_min=perf_data.get("avg_cs_per_min", 0.0),
-                        last_played_match=perf_data.get("last_played").isoformat() if perf_data.get("last_played") else None
+                        total_games_played=total_games,
+                        wins=wins,
+                        losses=losses,
+                        win_rate=win_rate,
+                        avg_kda=avg_kda,
+                        avg_cs_per_min=avg_cs_per_min,
+                        last_played_match=last_played_match
                 )
                 enhanced_masteries.append(enhanced_mastery)
             except Exception:

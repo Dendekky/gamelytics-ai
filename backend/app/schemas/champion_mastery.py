@@ -49,12 +49,12 @@ class ChampionMasteryWithPerformance(BaseModel):
     mastery_progress_percentage: float
     
     # Performance data from matches
-    total_games_played: int = 0
-    wins: int = 0
-    losses: int = 0
-    win_rate: float = 0.0
-    avg_kda: float = 0.0
-    avg_cs_per_min: float = 0.0
+    total_games_played: Optional[int] = None
+    wins: Optional[int] = None
+    losses: Optional[int] = None
+    win_rate: Optional[float] = None
+    avg_kda: Optional[float] = None
+    avg_cs_per_min: Optional[float] = None
     last_played_match: Optional[str] = None  # ISO format datetime string
 
 
